@@ -1,0 +1,1808 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Omcean Booking - PM Command Center</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            cyber: {
+              bg: '#060b13',
+              card: '#0a121e',
+              border: '#162235',
+              cyan: '#00f0ff',
+              cyanMuted: '#0e3a47',
+              green: '#10b981',
+              gold: '#fbbf24',
+              purple: '#a855f7',
+              red: '#f43f5e'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background-color: #060b13;
+      color: #e2e8f0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+    input, textarea, select {
+      background-color: #05080f !important;
+      border-color: #162235 !important;
+      color: #f8fafc !important;
+    }
+    input:focus, textarea:focus, select:focus {
+      border-color: #00f0ff !important;
+      outline: none;
+    }
+    [contenteditable="true"]:focus {
+      outline: 1px dashed #00f0ff;
+      background: #0d1e31;
+    }
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: #060b13; }
+    ::-webkit-scrollbar-thumb { background: #162235; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #00f0ff; }
+  </style>
+</head>
+<body class="min-h-screen px-4 sm:px-8 py-6 antialiased space-y-6">
+
+  <div class="max-w-[1440px] mx-auto space-y-6">
+
+    <!-- Top Header -->
+    <header class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-cyber-border pb-4 no-print">
+      <div>
+        <div class="flex items-center gap-3">
+          <span class="w-8 h-8 rounded-lg bg-cyber-cyan text-slate-950 font-black flex items-center justify-center text-sm font-mono">OB</span>
+          <h1 id="txt-main-title" class="text-2xl font-bold text-white tracking-tight">Omcean Booking PM 指揮中心</h1>
+        </div>
+        <p id="txt-sub-title" class="text-xs text-slate-400 font-mono mt-1">
+          [ROLE: 15-Yr Senior PM] Feature 01 ~ Feature 20 完整深度專業級 PRD 規格 &bull; 雙向即時切換
+        </p>
+      </div>
+
+      <div class="flex items-center space-x-3 font-mono text-xs">
+        <!-- 語言切換按鈕組 -->
+        <div class="bg-[#05080f] border border-cyber-border rounded-lg p-0.5 flex items-center">
+          <button id="btn-lang-zh" onclick="setLanguage('zh')" class="px-2.5 py-1 rounded bg-cyber-cyan text-slate-950 font-bold transition">繁體中文</button>
+          <button id="btn-lang-en" onclick="setLanguage('en')" class="px-2.5 py-1 rounded text-slate-400 hover:text-white transition">English</button>
+        </div>
+        <!-- 新增的 SAVE 按鍵 -->
+        <button onclick="saveAllModifications()" class="px-3.5 py-1.5 rounded-lg bg-emerald-600 text-white font-bold hover:bg-emerald-500 transition shadow-lg flex items-center gap-1.5">
+          💾 儲存修改 (SAVE)
+        </button>
+        <button onclick="window.print()" class="px-3.5 py-1.5 rounded-lg border border-cyber-border bg-cyber-card text-slate-300 hover:text-white transition">
+          🖨️ PDF 列印
+        </button>
+        <button onclick="exportFullMarkdown()" class="px-4 py-1.5 rounded-lg bg-cyber-cyan text-slate-950 font-bold hover:bg-opacity-90 transition">
+          匯出 (.MD)
+        </button>
+      </div>
+    </header>
+
+    <!-- OKR Core Guardrails -->
+    <section>
+      <div class="flex items-center justify-between mb-2">
+        <div id="txt-okr-header" class="text-[11px] font-mono text-slate-400 uppercase tracking-wider">
+          5 大專案 OKR 核心護欄 (點擊數值可直接編輯)
+        </div>
+        <span class="text-[10px] font-mono text-cyber-cyan">&bull; 欄位可編輯</span>
+      </div>
+      
+      <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 font-mono">
+        <div class="bg-cyber-card border border-cyber-border p-3.5 rounded-xl">
+          <div class="text-[11px] text-slate-400">OKR 1: 系統穩定度</div>
+          <div contenteditable="true" id="okr-1-val" class="text-lg font-bold text-cyber-green mt-0.5 rounded px-1">99.95% SLA</div>
+          <div contenteditable="true" id="okr-1-sub" class="text-[10px] text-slate-500 rounded px-1">零超額預約</div>
+        </div>
+        <div class="bg-cyber-card border border-cyber-border p-3.5 rounded-xl">
+          <div class="text-[11px] text-slate-400">OKR 2: 準確率</div>
+          <div contenteditable="true" id="okr-2-val" class="text-lg font-bold text-cyber-cyan mt-0.5 rounded px-1">100% AC 通過</div>
+          <div contenteditable="true" id="okr-2-sub" class="text-[10px] text-slate-500 rounded px-1">根本原因解決</div>
+        </div>
+        <div class="bg-cyber-card border border-cyber-border p-3.5 rounded-xl">
+          <div class="text-[11px] text-slate-400">OKR 3: 依時交付</div>
+          <div contenteditable="true" id="okr-3-val" class="text-lg font-bold text-white mt-0.5 rounded px-1">兩階段準時上線</div>
+          <div contenteditable="true" id="okr-3-sub" class="text-[10px] text-slate-500 rounded px-1">W4 試用 / W8 全面</div>
+        </div>
+        <div class="bg-cyber-card border border-cyber-border p-3.5 rounded-xl">
+          <div class="text-[11px] text-slate-400">OKR 4: 範圍控管</div>
+          <div contenteditable="true" id="okr-4-val" class="text-lg font-bold text-cyber-gold mt-0.5 rounded px-1">&lt; 10% 異動</div>
+          <div contenteditable="true" id="okr-4-sub" class="text-[10px] text-slate-500 rounded px-1">嚴格範圍凍結</div>
+        </div>
+        <div class="bg-cyber-card border border-cyber-border p-3.5 rounded-xl">
+          <div class="text-[11px] text-slate-400">OKR 5: 技術債</div>
+          <div contenteditable="true" id="okr-5-val" class="text-lg font-bold text-white mt-0.5 rounded px-1">0 額外技術債</div>
+          <div contenteditable="true" id="okr-5-sub" class="text-[10px] text-slate-500 rounded px-1">Redis 與微服務</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- STEP 1: Discovery & Scope Freeze -->
+    <section class="bg-cyber-card border border-cyber-border rounded-xl p-5 space-y-4">
+      <div class="flex items-center justify-between border-b border-cyber-border pb-3">
+        <div class="flex items-center gap-2">
+          <span class="px-2.5 py-0.5 rounded bg-cyber-cyan text-slate-950 font-black text-xs font-mono">STEP 1</span>
+          <h2 id="txt-step1-title" class="text-sm font-bold text-white tracking-wide">需求探索與範圍凍結 / 自定義需求處理</h2>
+        </div>
+        <button onclick="openGmailKickoffCompose()" class="px-3.5 py-1.5 rounded-lg bg-purple-900/80 hover:bg-purple-800 text-purple-200 border border-purple-500 font-mono text-xs font-bold transition shadow-md">
+          ✉️ 發送啟動信件 (Gmail)
+        </button>
+      </div>
+
+      <div class="space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label class="block text-[11px] font-mono text-cyber-cyan mb-1 flex items-center justify-between">
+              <span id="txt-feature-label">功能需求標題 (Feature 01 ~ 20)</span>
+              <span class="text-[10px] text-slate-500">自動同步下方</span>
+            </label>
+            <select id="req-title-select" onchange="onTitleDropdownChanged(this.value)" class="w-full px-3 py-2 text-xs rounded border font-mono text-cyber-cyan">
+              <!-- Populated by JS -->
+            </select>
+          </div>
+
+          <div>
+            <div class="flex justify-between items-center mb-1">
+              <label id="txt-voc-label" class="block text-[11px] font-mono text-slate-400">客戶心聲 (VoC)</label>
+              <span class="text-[10px] font-mono text-cyber-green">✓ 已同步</span>
+            </div>
+            <textarea id="req-voice" rows="2" class="w-full px-3 py-1.5 text-xs rounded border leading-relaxed"></textarea>
+          </div>
+
+          <div>
+            <label id="txt-rc-label" class="block text-[11px] font-mono text-cyber-cyan mb-1">PM 分析之根本原因 (Root Cause)</label>
+            <textarea id="req-problem" rows="2" class="w-full px-3 py-1.5 text-xs rounded border leading-relaxed text-cyber-cyan"></textarea>
+          </div>
+        </div>
+
+        <div class="p-3 bg-[#05080f] rounded-lg border border-cyber-border flex flex-col md:flex-row md:items-center justify-between gap-3">
+          <div class="space-y-1 flex-1">
+            <div id="txt-scope-header" class="text-[11px] font-bold text-cyber-gold font-mono uppercase">範圍邊界：第一階段絕對不予納入 (Out of Scope)</div>
+            <input type="text" id="req-scope" class="w-full text-xs text-slate-300 font-mono bg-transparent border-none p-0 focus:ring-0">
+          </div>
+          <span class="text-[10px] font-mono px-2 py-1 rounded bg-amber-950 text-cyber-gold border border-amber-800 shrink-0">
+            範圍異動率 &lt; 10%
+          </span>
+        </div>
+      </div>
+
+      <div class="pt-4 border-t border-cyber-border space-y-4">
+        <div class="flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-cyber-green animate-pulse"></span>
+          <span id="txt-prd-header" class="text-xs font-bold font-mono text-cyber-green">資深 PM 級 8 大維度 PRD 規格面板</span>
+        </div>
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+          <div class="lg:col-span-8 bg-[#05080f] border border-cyber-border rounded-xl p-4 space-y-3 font-mono text-xs">
+            <div class="flex justify-between items-center border-b border-cyber-border/80 pb-2">
+              <span class="text-cyber-cyan font-bold text-sm" id="prd-header-title">[PRD] 完整 8 項規格書</span>
+              <span class="text-[10px] text-slate-500 font-mono">SENIOR 8-STEP SPEC</span>
+            </div>
+            <div id="prd-content-view" class="space-y-3 text-slate-300 font-sans text-xs leading-relaxed max-h-[500px] overflow-y-auto pr-2"></div>
+          </div>
+
+          <div class="lg:col-span-4 bg-[#0a121e] border border-cyber-border rounded-xl p-4 space-y-3">
+            <div class="flex items-center justify-between border-b border-cyber-border pb-2">
+              <span id="txt-pm-decisions" class="text-xs font-bold font-mono text-cyber-gold">PM 戰情室決策</span>
+              <span class="text-[10px] text-slate-500">OKR 視角</span>
+            </div>
+            <div id="prd-pm-insights" class="space-y-2.5 text-[11px] leading-relaxed text-slate-300"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- STEP 2: Delivery Schedule & Kanban -->
+    <section class="bg-cyber-card border border-cyber-border rounded-xl p-5 space-y-5">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-cyber-border pb-4">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="px-2.5 py-0.5 rounded bg-cyber-green text-slate-950 font-black text-xs font-mono">STEP 2</span>
+            <h2 id="txt-step2-title" class="text-sm font-bold text-white tracking-wide">交付時程與 Jira 執行看板 (甘特圖與看板雙向連動)</h2>
+          </div>
+          <div class="flex items-center gap-3 mt-1 text-xs font-mono">
+            <span class="text-slate-400">整體專案進度: <strong id="overall-progress-text" class="text-cyber-cyan text-sm">0%</strong></span>
+          </div>
+        </div>
+        <div id="alert-status-banner" class="px-3.5 py-1.5 rounded-lg border font-mono text-xs flex items-center gap-2"></div>
+      </div>
+
+      <!-- Gantt Control Panel -->
+      <div class="space-y-3">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3 text-xs font-mono bg-[#05080f] p-3 rounded-xl border border-cyber-border">
+          <div id="txt-gantt-desc" class="text-slate-300 font-bold">📊 互動式甘特圖：調整 Sprint 或進度條可即時連動看板與總進度</div>
+          <div class="flex items-center gap-1.5">
+            <span id="txt-select-feature" class="text-slate-400 text-[11px]">選擇功能:</span>
+            <select id="gantt-filter-module" onchange="onGanttModuleChanged(this.value)" class="p-1 text-xs rounded border text-cyber-cyan bg-[#0a121e]">
+              <!-- Injected -->
+            </select>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto bg-[#05080f] p-4 rounded-xl border border-cyber-border">
+          <div class="min-w-[950px] space-y-3 font-mono text-xs">
+            <div class="grid grid-cols-12 gap-1 text-[11px] text-slate-500 pb-2 border-b border-cyber-border">
+              <div id="txt-gantt-col1" class="col-span-3 text-slate-300 font-bold">跨部門團隊與 Sprint / 進度控制</div>
+              <div class="col-span-2 text-center bg-blue-950/40 rounded py-0.5 border border-blue-900/50"><span class="text-blue-400 font-bold">Sprint 1</span> (W1-W2)</div>
+              <div class="col-span-2 text-center bg-purple-950/40 rounded py-0.5 border border-purple-900/50"><span class="text-purple-300 font-bold">Sprint 2</span> (W3-W4)</div>
+              <div class="col-span-2 text-center bg-teal-950/40 rounded py-0.5 border border-teal-900/50"><span class="text-teal-300 font-bold">Sprint 3</span> (W5-W6)</div>
+              <div class="col-span-3 text-center bg-emerald-950/40 rounded py-0.5 border border-emerald-900/50"><span class="text-cyber-green font-bold">Sprint 4</span> (W7-W8)</div>
+            </div>
+            <!-- 動態甘特圖列 -->
+            <div id="gantt-rows-container" class="space-y-3"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Kanban Board -->
+      <div class="pt-2 space-y-3">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#05080f] p-3 rounded-xl border border-cyber-border">
+          <div>
+            <div id="txt-kanban-header" class="text-xs font-mono font-bold text-slate-300 uppercase tracking-wider">JIRA 敏捷看板 (看板雙向同步)</div>
+            <div id="txt-kanban-tip" class="text-[11px] text-slate-500 font-mono">點擊卡片上的 ◀ ▶ 按鈕即可跨欄位移動，並自動位移甘特圖進度</div>
+          </div>
+          <div class="flex items-center gap-3">
+            <div class="flex items-center gap-1.5 font-mono text-xs">
+              <span class="text-slate-400 text-[11px]">🔍 篩選:</span>
+              <select id="kanban-filter-module" onchange="renderKanbanBoard()" class="p-1 text-xs rounded border text-cyber-cyan bg-[#0a121e] font-mono">
+                <option value="ALL">All Features</option>
+              </select>
+            </div>
+            <button onclick="openAddTicketModal()" class="px-3 py-1.5 rounded-lg bg-cyber-cyan text-slate-950 font-bold text-xs font-mono hover:bg-opacity-90 transition">
+              + Add Subtask Ticket
+            </button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5" id="kanban-board">
+          <div class="bg-[#05080f] border border-cyber-border rounded-xl p-3 flex flex-col justify-between">
+            <div>
+              <div class="flex justify-between items-center pb-2 text-xs font-mono text-slate-400 border-b border-cyber-border">
+                <span class="font-bold flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-slate-500"></span> BACKLOG</span>
+                <span id="count-backlog" class="px-1.5 py-0.5 rounded bg-slate-900 text-[10px]">0</span>
+              </div>
+              <div class="space-y-2 mt-3" id="col-backlog"></div>
+            </div>
+          </div>
+          <div class="bg-[#05080f] border border-cyber-border rounded-xl p-3 flex flex-col justify-between">
+            <div>
+              <div class="flex justify-between items-center pb-2 text-xs font-mono text-blue-400 border-b border-cyber-border">
+                <span class="font-bold flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-blue-400"></span> IN DEV</span>
+                <span id="count-dev" class="px-1.5 py-0.5 rounded bg-blue-950 text-[10px] text-blue-300">0</span>
+              </div>
+              <div class="space-y-2 mt-3" id="col-dev"></div>
+            </div>
+          </div>
+          <div class="bg-[#05080f] border border-cyber-border rounded-xl p-3 flex flex-col justify-between">
+            <div>
+              <div class="flex justify-between items-center pb-2 text-xs font-mono text-cyber-gold border-b border-cyber-border">
+                <span class="font-bold flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-cyber-gold"></span> QA / TEST</span>
+                <span id="count-test" class="px-1.5 py-0.5 rounded bg-amber-950 text-[10px] text-cyber-gold">0</span>
+              </div>
+              <div class="space-y-2 mt-3" id="col-test"></div>
+            </div>
+          </div>
+          <div class="bg-[#05080f] border border-cyber-border rounded-xl p-3 flex flex-col justify-between">
+            <div>
+              <div class="flex justify-between items-center pb-2 text-xs font-mono text-cyber-green border-b border-cyber-border">
+                <span class="font-bold flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-cyber-green"></span> PUBLISHED</span>
+                <span id="count-publish" class="px-1.5 py-0.5 rounded bg-emerald-950 text-[10px] text-cyber-green">0</span>
+              </div>
+              <div class="space-y-2 mt-3" id="col-publish"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- UAT Edge Cases Checklists -->
+    <section class="bg-cyber-card border border-cyber-border rounded-xl p-5 space-y-4">
+      <div class="flex items-center justify-between border-b border-cyber-border pb-3">
+        <div class="flex items-center gap-2">
+          <span class="px-2.5 py-0.5 rounded bg-cyber-green text-slate-950 font-black text-xs font-mono">UAT</span>
+          <h2 id="txt-uat-title" class="text-sm font-bold text-white tracking-wide">PM 標準測試目標與邊界異常檢核表 (Edge Cases)</h2>
+        </div>
+        <span class="text-[10px] font-mono text-cyber-green bg-emerald-950 px-2 py-0.5 rounded border border-emerald-800">Staging 驗收標準</span>
+      </div>
+      <p id="txt-uat-desc" class="text-xs text-slate-400 font-mono">針對目前所選功能的邊界異常測試檢核清單：</p>
+      <div id="edge-checklist-container" class="space-y-2 text-xs font-mono"></div>
+    </section>
+
+    <!-- STEP 3: Kickoff Alignment & Regular Syncs -->
+    <section class="bg-cyber-card border border-cyber-border rounded-xl p-5 space-y-6">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-cyber-border pb-3">
+        <div class="flex items-center gap-2">
+          <span class="px-2.5 py-0.5 rounded bg-cyber-gold text-slate-950 font-black text-xs font-mono">STEP 3</span>
+          <h2 id="txt-step3-title" class="text-sm font-bold text-white tracking-wide">跨部門啟動共識與例會協作 (Kickoff Alignment & Regular Syncs)</h2>
+        </div>
+        <div class="flex items-center gap-3 font-mono text-xs">
+          <span class="text-slate-400 text-[11px]">🎯 選擇同步功能模組:</span>
+          <select id="step3-filter-module" onchange="onStep3ModuleChanged(this.value)" class="p-1 text-xs rounded border text-cyber-cyan bg-[#05080f]">
+            <!-- Injected by JS -->
+          </select>
+        </div>
+      </div>
+
+      <!-- 區塊 A: Kickoff Meeting -->
+      <div class="bg-[#05080f] border border-cyber-border rounded-xl p-4 space-y-4">
+        <div class="flex items-center justify-between border-b border-cyber-border/80 pb-2">
+          <div class="flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-cyber-cyan"></span>
+            <h3 class="text-xs font-bold font-mono text-cyber-cyan uppercase">1. Kickoff Meeting (跨部門啟動會議與 RACI 矩陣) - 手動可編輯</h3>
+          </div>
+          <button onclick="openGmailKickoffCompose()" class="px-3 py-1 bg-purple-900/80 hover:bg-purple-800 text-purple-200 border border-purple-500 font-mono text-[11px] font-bold rounded transition shadow-md">
+            ✉️ 發送 Kickoff 會議通知
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 font-mono text-xs">
+          <!-- PM Team -->
+          <div class="bg-[#0a121e] border border-cyber-border rounded-lg p-3 space-y-2">
+            <div class="flex justify-between items-center border-b border-cyber-border pb-1.5">
+              <span class="font-bold text-blue-400">👤 PM (產品經理)</span>
+              <span class="px-1.5 py-0.5 rounded bg-rose-950 text-rose-300 text-[9px] font-bold">Accountable (A)</span>
+            </div>
+            <div>
+              <span class="text-[10px] text-slate-400 block mb-0.5">RACI 權責：</span>
+              <div contenteditable="true" id="step3-pm-desc" class="p-1.5 bg-[#05080f] border border-cyber-border rounded text-slate-200 text-[10px]">定義核心功能規格、User Stories、Gherkin AC 與範圍邊界。</div>
+            </div>
+            <div>
+              <span class="text-[10px] text-cyber-gold block mb-0.5">行動清單 (Action Items)：</span>
+              <div contenteditable="true" id="step3-pm-actions" class="p-1.5 bg-[#05080f] border border-cyber-border rounded text-slate-200 text-[10px]">• PRD 最終簽署定案<br>• 主持跨部門 Kickoff</div>
+            </div>
+            <div>
+              <span class="text-[10px] text-cyber-green block mb-0.5">交付完成標準 (DoD)：</span>
+              <div contenteditable="true" id="step3-pm-dod" class="p-1.5 bg-[#05080f] border border-cyber-border rounded text-slate-200 text-[10px]">✓ PRD 獲技術主管與業務簽核</div>
+            </div>
+          </div>
+
+          <!-- RD Team -->
+          <div class="bg-[#0a121e] border border-cyber-border rounded-lg p-3 space-y-2">
+            <div class="flex justify-between items-center border-b border-cyber-border pb-1.5">
+              <span class="font-bold text-emerald-400">💻 RD (工程研發)</span>
+              <span class="px-1.5 py-0.5 rounded bg-cyan-950 text-cyan-300 text-[9px] font-bold">Responsible (R)</span>
+            </div>
+            <div>
+              <span class="text-[10px] text-slate-400 block mb-0.5">RACI 權責：</span>
+              <div contenteditable="true" id="step3-rd-desc" class="p-1.5 bg-[#05080f] border border-cyber-border rounded text-slate-200 text-[10px]">執行前後端架構、Redis 鎖定與 REST API 實作。</div>
+            </div>
+            <div>
+              <span class="text-[10px] text-cyber-gold block mb-0.5">行動清單 (Action Items)：</span>
+              <div contenteditable="true" id="step3-rd-actions" class="p-1.5 bg-[#05080f] border border-cyber-border rounded text-slate-200 text-[10px]">• 資料庫 Schema 設計<br>• 單元測試涵蓋率 &gt;= 85%</div>
+            </div>
+            <div>
+              <span class="text-[10px] text-cyber-green block mb-0.5">交付完成標準 (DoD)：</span>
+              <div contenteditable="true" id="step3-rd-dod" class="p-1.5 bg-[#05080f] border border-cyber-border rounded text-slate-200 text-[10px]">✓ 程式碼合併 Staging & P99 &lt; 200ms</div>
+            </div>
+          </div>
+
+          <!-- QA Team -->
+          <div class="bg-[#0a121e] border border-cyber-border rounded-lg p-3 space-y-2">
+            <div class="flex justify-between items-center border-b border-cyber-border pb-2">
+              <span class="font-bold text-cyber-gold">🧪 QA (品質保證)</span>
+              <span class="px-1.5 py-0.5 rounded bg-cyan-950 text-cyan-300 text-[9px] font-bold">Responsible (R)</span>
+            </div>
+            <div>
+              <span class="text-[10px] text-slate-400 block mb-0.5">RACI 權責：</span>
+              <div contenteditable="true" id="step3-qa-desc" class="p-1.5 bg-[#05080f] border border-cyber-border rounded text-slate-200 text-[10px]">執行邊界條件驗證（併發、斷線）與 UAT 測試。</div>
+            </div>
+            <div>
+              <span class="text-[10px] text-cyber-gold block mb-0.5">行動清單 (Action Items)：</span>
+              <div contenteditable="true" id="step3-qa-actions" class="p-1.5 bg-[#05080f] border border-cyber-border rounded text-slate-200 text-[10px]">• 執行 1,500 QPS 壓力測試<br>• Gherkin 驗收測試</div>
+            </div>
+            <div>
+              <span class="text-[10px] text-cyber-green block mb-0.5">交付完成標準 (DoD)：</span>
+              <div contenteditable="true" id="step3-qa-dod" class="p-1.5 bg-[#05080f] border border-cyber-border rounded text-slate-200 text-[10px]">✓ Staging 環境零重大 Bug</div>
+            </div>
+          </div>
+
+          <!-- BD/CS Team -->
+          <div class="bg-[#0a121e] border border-cyber-border rounded-lg p-3 space-y-2">
+            <div class="flex justify-between items-center border-b border-cyber-border pb-2">
+              <span class="font-bold text-purple-400">🤝 BD / CS (業務客服)</span>
+              <span class="px-1.5 py-0.5 rounded bg-amber-950 text-amber-300 text-[9px] font-bold">Consulted (C)</span>
+            </div>
+            <div>
+              <span class="text-[10px] text-slate-400 block mb-0.5">RACI 權責：</span>
+              <div contenteditable="true" id="step3-bd-desc" class="p-1.5 bg-[#05080f] border border-cyber-border rounded text-slate-200 text-[10px]">收集客戶心聲 (VoC)，對齊試用客戶與準備說明文檔。</div>
+            </div>
+            <div>
+              <span class="text-[10px] text-cyber-gold block mb-0.5">行動清單 (Action Items)：</span>
+              <div contenteditable="true" id="step3-bd-actions" class="p-1.5 bg-[#05080f] border border-cyber-border rounded text-slate-200 text-[10px]">• 確認 W4 試用旗艦店<br>• 發布幫助中心 FAQ</div>
+            </div>
+            <div>
+              <span class="text-[10px] text-cyber-green block mb-0.5">交付完成標準 (DoD)：</span>
+              <div contenteditable="true" id="step3-bd-dod" class="p-1.5 bg-[#05080f] border border-cyber-border rounded text-slate-200 text-[10px]">✓ 客戶教育訓練與客服管道建立</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 區塊 B: Regular Cross-Team Syncs -->
+      <div class="bg-[#05080f] border border-cyber-border rounded-xl p-4 space-y-4">
+        <div class="flex items-center justify-between border-b border-cyber-border/80 pb-2">
+          <div class="flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-purple-500"></span>
+            <h3 class="text-xs font-bold font-mono text-purple-300 uppercase">2. Regular Cross-Team Syncs (例會同步與 SAMR 溝通決策台)</h3>
+          </div>
+          <span class="text-[10px] font-mono text-slate-400">每週三跨部門同步例會 (Sync-up)</span>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 font-mono text-xs">
+          <!-- SAMR 溝通決策台 -->
+          <div class="bg-[#0a121e] border border-cyber-border rounded-lg p-3.5 space-y-3">
+            <div class="text-cyber-cyan font-bold text-[11px] uppercase border-b border-cyber-border pb-1.5 flex justify-between">
+              <span>跨部門溝通決策台 (SAMR 框架)</span>
+              <span class="text-[9px] text-cyber-green" id="samr-sync-tag">● 連動當前選定模組</span>
+            </div>
+            <div class="space-y-2 text-[11px]">
+              <div>
+                <span class="text-slate-400 block text-[10px]">S (Substitution / 替代方案)：</span>
+                <input type="text" id="samr-s" value="以標準化 Web Widget 取代客製化 App 開發" class="w-full p-1.5 rounded text-[11px]">
+              </div>
+              <div>
+                <span class="text-slate-400 block text-[10px]">A (Augmentation / 效能增強)：</span>
+                <input type="text" id="samr-a" value="導入 Redis Redlock 讓併發處理速度提升 5 倍" class="w-full p-1.5 rounded text-[11px]">
+              </div>
+              <div>
+                <span class="text-slate-400 block text-[10px]">M (Modification / 流程修改)：</span>
+                <input type="text" id="samr-m" value="重構結帳與時段鎖定邏輯，實現零超額預約" class="w-full p-1.5 rounded text-[11px]">
+              </div>
+              <div>
+                <span class="text-slate-400 block text-[10px]">R (Redefinition / 重新定義價值)：</span>
+                <input type="text" id="samr-r" value="實現 24/7 全自動預約閉環，徹底解放櫃檯人力" class="w-full p-1.5 rounded text-[11px]">
+              </div>
+            </div>
+          </div>
+
+          <!-- 會議共識與行動指針 -->
+          <div class="bg-[#0a121e] border border-cyber-border rounded-lg p-3.5 space-y-3 font-mono text-xs">
+            <div class="text-cyber-gold font-bold text-[11px] uppercase border-b border-cyber-border pb-1.5">
+              <span>會議共識 (Summary) 與成效指針</span>
+            </div>
+            <div class="space-y-2.5">
+              <div>
+                <label class="text-[10px] text-slate-400 block mb-0.5">開會跨部門對口 (Cross-Team Owners)：</label>
+                <input type="text" id="sync-owners" value="PM (Hung-Ru), Tech Lead (RD), QA Lead, CS Manager" class="w-full p-1.5 rounded text-[11px]">
+              </div>
+              <div>
+                <label class="text-[10px] text-cyber-green block mb-0.5">會議共識 (Summary)：</label>
+                <textarea id="sync-summary" rows="2" class="w-full p-1.5 rounded text-[11px]">各部門一致同意嚴格執行第一階段範圍凍結；後端 Redis 分散式鎖定進入 Staging 測試。</textarea>
+              </div>
+              <div>
+                <label class="text-[10px] text-cyber-gold block mb-0.5">行動指針與可衡量結果 (Action Items & Result)：</label>
+                <textarea id="sync-actions" rows="2" class="w-full p-1.5 rounded text-[11px]">• RD 於本週五前完成 1,500 QPS 壓測。目標：零超額預約 (OKR 1).</textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SOP 危機應變標準作業程序 -->
+    <section class="bg-cyber-card border border-cyber-border rounded-xl p-5 space-y-4">
+      <div class="flex items-center justify-between border-b border-cyber-border pb-3">
+        <div class="flex items-center gap-2">
+          <span class="px-2.5 py-0.5 rounded bg-rose-600 text-white font-black text-xs font-mono">SOP</span>
+          <h2 id="txt-sop-title" class="text-sm font-bold text-white tracking-wide">危機應變標準作業程序 (SOP - 可直接編輯)</h2>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="openGmailEmergencyCompose()" class="px-3 py-1 rounded bg-rose-900/80 hover:bg-rose-800 text-rose-200 border border-rose-500 font-mono text-xs font-bold transition shadow-md">
+            🚨 發送緊急應變信 (Gmail)
+          </button>
+        </div>
+      </div>
+      <p id="txt-sop-tip" class="text-xs text-slate-400 font-mono">點擊下方文字框即可直接修改任務與交付標準：</p>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 font-mono text-xs">
+        <div class="bg-[#05080f] border border-cyber-border rounded-xl p-4 space-y-2.5">
+          <div class="text-cyber-gold font-bold">🚨 狀況一：[併發衝突] 超額預約</div>
+          <p class="text-[11px] text-slate-400 font-sans leading-relaxed">高流量同時搶位導致資料庫寫入衝突。</p>
+          <div class="space-y-1.5 text-[11px] pt-2 border-t border-cyber-border/60">
+            <div><strong class="text-blue-400">負責團隊:</strong> <span contenteditable="true" id="sop-1-team" class="text-slate-200 bg-slate-900/60 px-1 rounded">工程研發與產品經理</span></div>
+            <div><strong class="text-yellow-400">目標 Sprint:</strong> <span contenteditable="true" id="sop-1-sprint" class="text-slate-200 bg-slate-900/60 px-1 rounded">Sprint 2 (W3-W4)</span></div>
+            <div><strong class="text-slate-300">修正動作:</strong> <span contenteditable="true" id="sop-1-action" class="text-slate-300 bg-slate-900/60 px-1 rounded">導入 Redis Redlock 分散式鎖定機制。</span></div>
+            <div><strong class="text-rose-400">完成期限:</strong> <span contenteditable="true" id="sop-1-deadline" class="text-slate-300 bg-slate-900/60 px-1 rounded">2026-03-28 EOD</span></div>
+            <div><strong class="text-cyber-green">交付目標:</strong> <span contenteditable="true" id="sop-1-goal" class="text-slate-300 bg-slate-900/60 px-1 rounded">1,500 QPS 壓力測試超額率 = 0%。</span></div>
+          </div>
+        </div>
+
+        <div class="bg-[#05080f] border border-cyber-border rounded-xl p-4 space-y-2.5">
+          <div class="text-cyber-gold font-bold">⚡ 狀況二：[網路中斷] 交易孤兒</div>
+          <p class="text-[11px] text-slate-400 font-sans leading-relaxed">付款成功但 Webhook 未送達導致狀態未同步。</p>
+          <div class="space-y-1.5 text-[11px] pt-2 border-t border-cyber-border/60">
+            <div><strong class="text-blue-400">負責團隊:</strong> <span contenteditable="true" id="sop-2-team" class="text-slate-200 bg-slate-900/60 px-1 rounded">工程研發與業務客服</span></div>
+            <div><strong class="text-yellow-400">目標 Sprint:</strong> <span contenteditable="true" id="sop-2-sprint" class="text-slate-200 bg-slate-900/60 px-1 rounded">Sprint 3 (W5-W6)</span></div>
+            <div><strong class="text-slate-300">修正動作:</strong> <span contenteditable="true" id="sop-2-action" class="text-slate-300 bg-slate-900/60 px-1 rounded">建立付款對帳背景執行緒與前端輪詢。</span></div>
+            <div><strong class="text-rose-400">完成期限:</strong> <span contenteditable="true" id="sop-2-deadline" class="text-slate-300 bg-slate-900/60 px-1 rounded">2026-04-11 EOD</span></div>
+            <div><strong class="text-cyber-green">交付目標:</strong> <span contenteditable="true" id="sop-2-goal" class="text-slate-300 bg-slate-900/60 px-1 rounded">網路恢復後自動對帳並更新狀態。</span></div>
+          </div>
+        </div>
+
+        <div class="bg-[#05080f] border border-cyber-border rounded-xl p-4 space-y-2.5">
+          <div class="text-cyber-gold font-bold">⏳ 狀況三：[超時釋放] 候位遞補</div>
+          <p class="text-[11px] text-slate-400 font-sans leading-relaxed">15分鐘保留時間逾期未付款。</p>
+          <div class="space-y-1.5 text-[11px] pt-2 border-t border-cyber-border/60">
+            <div><strong class="text-blue-400">負責團隊:</strong> <span contenteditable="true" id="sop-3-team" class="text-slate-200 bg-slate-900/60 px-1 rounded">工程研發與品質保證</span></div>
+            <div><strong class="text-yellow-400">目標 Sprint:</strong> <span contenteditable="true" id="sop-3-sprint" class="text-slate-200 bg-slate-900/60 px-1 rounded">Sprint 2 (W3-W4)</span></div>
+            <div><strong class="text-slate-300">修正動作:</strong> <span contenteditable="true" id="sop-3-action" class="text-slate-300 bg-slate-900/60 px-1 rounded">最佳化 Celery 倒數計時與事件驅動遞補。</span></div>
+            <div><strong class="text-rose-400">完成期限:</strong> <span contenteditable="true" id="sop-3-deadline" class="text-slate-400 bg-slate-900/60 px-1 rounded">2026-03-31 EOD</span></div>
+            <div><strong class="text-cyber-green">交付目標:</strong> <span contenteditable="true" id="sop-3-goal" class="text-slate-400 bg-slate-900/60 px-1 rounded">15分鐘逾期自動釋放與候位位移。</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- Modal: Edit / Add Jira Ticket -->
+  <div id="ticket-modal" class="fixed inset-0 bg-black/80 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-cyber-card border border-cyber-border rounded-2xl max-w-lg w-full p-6 space-y-4 font-mono text-xs shadow-2xl">
+      <div class="flex justify-between items-center border-b border-cyber-border pb-3">
+        <h3 class="text-sm font-bold text-white" id="modal-heading">編輯 Jira 任務卡片</h3>
+        <button onclick="closeTicketModal()" class="text-slate-400 hover:text-white text-base">✕</button>
+      </div>
+
+      <div class="space-y-3">
+        <div>
+          <label class="block text-slate-400 mb-1">功能編號 (Feature 01 ~ 20)</label>
+          <input type="text" id="modal-ticket-id" class="w-full p-2 rounded border text-slate-200 bg-[#05080f] font-mono">
+        </div>
+
+        <div>
+          <label class="block text-cyber-cyan mb-1 font-bold">快速選擇 Feature 01 ~ 20</label>
+          <select id="modal-preset-select" onchange="applyPresetToModal(this.value)" class="w-full p-2 rounded border text-cyber-cyan">
+            <option value="">-- 請選擇功能模組 --</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-slate-300 mb-1">任務標題</label>
+          <textarea id="modal-ticket-title" rows="2" class="w-full p-2 rounded border text-slate-200"></textarea>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-slate-300 mb-1">主要負責人 (A)</label>
+            <select id="modal-ticket-primary" class="w-full p-2 rounded border text-white font-bold">
+              <option value="Product PM">Product PM</option>
+              <option value="Engineering">Engineering</option>
+              <option value="UX/FE">UX/FE</option>
+              <option value="QA/Ops">QA/Ops</option>
+              <option value="Sales/CS">Sales/CS</option>
+              <option value="AI/Chatbot">AI/Chatbot</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-slate-300 mb-1">協同支援 (C)</label>
+            <select id="modal-ticket-support" class="w-full p-2 rounded border text-purple-300">
+              <option value="QA/Ops">QA/Ops</option>
+              <option value="UX/FE">UX/FE</option>
+              <option value="Engineering">Engineering</option>
+              <option value="Sales/CS">Sales/CS</option>
+              <option value="Product PM">Product PM</option>
+              <option value="None">None</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-slate-300 mb-1">目標 Sprint</label>
+            <select id="modal-ticket-sprint" class="w-full p-2 rounded border text-yellow-400 font-bold">
+              <option value="Sprint 1 (W1-W2)">Sprint 1 (W1-W2)</option>
+              <option value="Sprint 2 (W3-W4)">Sprint 2 (W3-W4)</option>
+              <option value="Sprint 3 (W5-W6)">Sprint 3 (W5-W6)</option>
+              <option value="Sprint 4 (W7-W8)">Sprint 4 (W7-W8)</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-slate-300 mb-1">看板欄位</label>
+            <select id="modal-ticket-status" class="w-full p-2 rounded border text-cyber-green font-bold">
+              <option value="backlog">待辦清單 (Backlog)</option>
+              <option value="dev">開發中 (In Dev)</option>
+              <option value="test">測試中 (QA)</option>
+              <option value="publish">已發布 (Published)</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <div class="flex justify-between items-center mb-1">
+            <label class="block text-cyber-cyan font-bold">進度百分比</label>
+            <span id="progress-val-label" class="text-white font-bold">50%</span>
+          </div>
+          <input type="range" id="modal-ticket-progress" min="10" max="100" step="5" value="50" oninput="document.getElementById('progress-val-label').innerText = this.value + '%'" class="w-full accent-cyber-cyan cursor-pointer">
+        </div>
+
+        <div class="p-3 bg-[#05080f] rounded-lg border border-cyber-border">
+          <label class="flex items-center space-x-2 cursor-pointer">
+            <input type="checkbox" id="modal-ticket-risk" class="rounded text-rose-500">
+            <span class="text-rose-300 font-bold">⚠️ 標記為高風險並觸發主管升級審查</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-between pt-3 border-t border-cyber-border">
+        <button id="delete-ticket-btn" onclick="deleteCurrentTicket()" class="px-3 py-1.5 rounded bg-rose-950 hover:bg-rose-900 text-rose-300 border border-rose-800 font-bold transition">
+          🗑️ 刪除卡片
+        </button>
+        <div class="flex space-x-2">
+          <button onclick="closeTicketModal()" class="px-3 py-1.5 rounded bg-slate-800 text-slate-400">取消</button>
+          <button onclick="saveTicketFromModal()" class="px-4 py-1.5 rounded bg-cyber-cyan text-slate-950 font-bold">儲存卡片</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 完整 20 個 Feature 資料庫與 8 大維度規格
+    const featuresData = {
+      'Feature 01': {
+        title: 'Feature 01: 24/7 Online Booking Widget (24小時線上預約小工具)',
+        voice: '"Customers want to book anytime anywhere via mobile without calling the front desk during off-hours."',
+        problem: 'Traditional phone booking creates severe off-hour friction and 40% drop-off; need a responsive 24/7 web/mobile booking widget.',
+        scope: '1. No third-party phone PBX telephony integration in Phase 1. 2. No custom avatar creation.',
+        sol: '前端採用 Web Component / Embedded iframe 掛載於外部官網，後端透過 REST API 與 Availability Engine 進行時段即時鎖定，防止超賣（Race Condition）。',
+        userStories: '• As a customer, I want to book a slot 24/7 on my mobile phone so I never have to wait for store opening hours.',
+        gherkinAC: 'Given 用戶在 24/7 預約頁面選擇了服務項目與特定設計師\nWhen 選擇一個尚有名額的時段並填寫聯絡資料送出預約\nThen 系統應成功建立預約記錄，並在畫面顯示預約成功畫面，同時發送確認通知。',
+        wireframe: '+---------------------------------------------------+\n| [步驟 1: 選擇服務] -> [步驟 2: 選時間] -> [填寫資料] |\n|---------------------------------------------------|\n|  請選擇預約日期: [ 2026-09-12 v ]                 |\n|  可用時段: [ 10:00 ] [ 14:00 ] [ 15:30 ]            |\n|  姓名: [ _________ ]  電話: [ ____________ ]      |\n|                     [ 確認送出預約 ]              |\n+---------------------------------------------------+',
+        seqDiag: 'User         Frontend (Widget)     Backend (API)     Database\n │                  │                     │               │\n │─── 選擇時段 ─────▶│                     │               │\n │                  │─── POST /lock ───▶│               │\n │                  │                     │── 檢查並鎖定 ─▶│\n │                  │◀── 200 OK (10分) ─│               │',
+        kpi: '線上預約轉換率 $\ge 25\%$；深夜時段預約佔總預約數 $\ge 30\%$。',
+        pmInsights: '1. 採用「先鎖定後付款/確認」機制，減少併發預約時的衝突 (OKR 1).\n2. 前端必須支援響應式設計（RWD） (OKR 2).',
+        raci: {
+          pm: { desc: 'Define 24/7 booking UX flow and conversion targets.', actions: ['Finalize UX wireframes'], dod: ['PRD signed off'] },
+          rd: { desc: 'Build responsive web widget and REST API endpoints.', actions: ['Develop REST API'], dod: ['API latency < 200ms'] },
+          qa: { desc: 'Verify cross-browser and mobile compatibility.', actions: ['Run mobile UAT'], dod: ['Zero layout shift'] },
+          bd: { desc: 'Coordinate merchant pilot onboarding.', actions: ['Merchant briefing'], dod: ['Pilot ready'] }
+        },
+        edgeChecklists: ['【Concurrency】兩位用戶在同一毫秒搶最後名額時的資料庫交易鎖處理。', '【Network Drop】結帳到一半斷線時，時段保留 10 分鐘後自動釋放。']
+      },
+      'Feature 02': {
+        title: 'Feature 02: Business Type & Multi-Location Selector (業務類型與分店選擇器)',
+        voice: '"Multi-branch chain customers need to easily choose their nearest store location and business category before booking."',
+        problem: 'Chain stores lack unified multi-location entry points, leading to wrong store bookings and manual rescheduling overhead.',
+        scope: '1. No cross-store loyalty points clearing in Phase 1.',
+        sol: '採用階層式組織架構（Organization -> Brand -> Location），前端透過動態路由與 LocalStorage 快取用戶選定之分店與業務類型。',
+        userStories: '• As a customer, I want to filter by location and service category so I can book the correct branch easily.',
+        gherkinAC: 'Given 用戶進入多分店首頁\nWhen 選擇「台北旗艦店」與「美業服務」\nThen 系統應載入該分店的專屬設計師清單與可用時段。',
+        wireframe: '+---------------------------------------------------+\n| 🏢 選擇分店與服務類型                             |\n| [ 台北旗艦店 (大安區)        ▼ ]                 |\n| [ 髮型設計 / 頭皮SPA         ▼ ]                 |\n|                     [ 確認並進入預約 ]            |\n+---------------------------------------------------+',
+        seqDiag: 'User         Frontend              API Gateway       Database\n │                  │                     │               │\n │─── 選擇分店 ─────▶│                     │               │\n │                  │── GET /locations ──▶│               │\n │                  │◀── Branch Config ───│               │',
+        kpi: '分店選擇跳出率 $< 10\%$；分店配置載入時間 $< 300\text{ms}$。',
+        pmInsights: '1. 支援單店與加盟總部模式架構，確保長期擴充性 (OKR 5).',
+        raci: {
+          pm: { desc: 'Define multi-location hierarchy.', actions: ['Define schema'], dod: ['Approved'] },
+          rd: { desc: 'Implement location mapping APIs.', actions: ['Build APIs'], dod: ['Tested'] },
+          qa: { desc: 'Test branch switching accuracy.', actions: ['Run test cases'], dod: ['Passed'] },
+          bd: { desc: 'Verify chain store configurations.', actions: ['Audit data'], dod: ['Verified'] }
+        },
+        edgeChecklists: ['【Closed Branch】當分店臨時停業時，前端選單自動呈現 Disable。']
+      },
+      'Feature 03': {
+        title: 'Feature 03: Service Menu & Pricing Display (服務項目與價格清單展示)',
+        voice: '"Customers want transparent pricing, duration, and detailed descriptions for each service item before booking."',
+        problem: 'Unclear pricing and hidden service details cause customer hesitation and increased drop-offs at checkout.',
+        scope: '1. No dynamic surge pricing based on real-time demand in Phase 1.',
+        sol: '後台建立商品與服務 CMS 管理模組，前端提供標籤分類（Tabs）、原價與特價對比顯示以及搜尋過濾功能。',
+        userStories: '• As a customer, I want to view clear pricing and duration so I can make informed choices.',
+        gherkinAC: 'Given 服務項目設定了原價與特價\nWhen 用戶瀏覽服務清單\nThen 應同時顯示刪除線原價與醒目特價。',
+        wireframe: '+---------------------------------------------------+\n| [全部] [美髮] [頭皮養護]                          |\n| 🖼️ 頂級頭皮舒壓SPA (60分鐘)                       |\n| NT$ 1,200  ~~NT$ 1,500~~               [選擇 +]   |\n+---------------------------------------------------+',
+        seqDiag: 'User         Frontend              API Gateway       Cache\n │                  │                     │               │\n │── 瀏覽服務清單 ──▶│                     │               │\n │                  │── GET /services ───▶│               │\n │                  │                     │── Read Redis ──▶│',
+        kpi: '服務項目點擊率 $\ge 40\%$；選單載入延遲 $< 200\text{ms}$。',
+        pmInsights: '1. 採用 Redis 快取商品目錄，減輕資料庫讀取負擔 (OKR 1).',
+        raci: {
+          pm: { desc: 'Define service catalog schema.', actions: ['Spec mapping'], dod: ['Approved'] },
+          rd: { desc: 'Develop CMS and caching layer.', actions: ['Coding'], dod: ['Deployed'] },
+          qa: { desc: 'Validate price display accuracy.', actions: ['Testing'], dod: ['Passed'] },
+          bd: { desc: 'Import initial service menus.', actions: ['Data entry'], dod: ['Imported'] }
+        },
+        edgeChecklists: ['【Long Text】服務名稱超過 30 字時前端自動截斷與展開處理。']
+      },
+      'Feature 04': {
+        title: 'Feature 04: Staff & Resource Scheduling Calendar (員工與場地排班行事曆)',
+        voice: '"Store managers need a unified calendar to view staff shifts and room availability to prevent double-booking."',
+        problem: 'Manual calendar management leads to scheduling conflicts and resource overbooking across staff and rooms.',
+        scope: '1. No automated AI staff allocation in Phase 1 (handled in Feature 16).',
+        sol: '結合 FullCalendar.js 與後端交集運算（Staff Shifts ∩ Existing Bookings），動態計算出可用人力與場地資源。',
+        userStories: '• As a store manager, I want a unified calendar so I can avoid resource overbooking.',
+        gherkinAC: 'Given 某員工當天下午請假\nWhen 用戶嘗試預約該員工時段\nThen 系統應自動標記該時段為不可預約。',
+        wireframe: '+---------------------------------------------------+\n| 📅 2026-09-16 [日視圖]  [員工篩選 ▼]               |\n| 時間  | 總監 John    | 美容師 Amy                   |\n| 10:00 | [已預約]     | [可預約]                     |\n+---------------------------------------------------+',
+        seqDiag: 'Manager      Frontend              Backend           Database\n │                  │                     │               │\n │── 查詢日曆 ──────▶│                     │               │\n │                  │── GET /schedules ──▶│               │\n │                  │                     │── 運算交集 ───▶│',
+        kpi: '資源衝突率降至 $0\%$；支援 50 位員工同時渲染 $< 1.5$ 秒。',
+        pmInsights: '1. 透過後端交集運算確保排班資料一致性 (OKR 1).',
+        raci: {
+          pm: { desc: 'Define calendar UI requirements.', actions: ['Wireframing'], dod: ['Signed off'] },
+          rd: { desc: 'Implement calendar intersection logic.', actions: ['Coding'], dod: ['Passed'] },
+          qa: { desc: 'Verify scheduling conflicts.', actions: ['Stress testing'], dod: ['Passed'] },
+          bd: { desc: 'Train store managers.', actions: ['User training'], dod: ['Trained'] }
+        },
+        edgeChecklists: ['【Multi-store Staff】支援跨店支援員工的時段防衝突檢核。']
+      },
+      'Feature 05': {
+        title: 'Feature 05: Customer Self-Service Portal (會員自助查詢與改期系統)',
+        voice: '"Customers want to view upcoming appointments and reschedule or cancel on their own without calling support."',
+        problem: 'High volume of phone calls for minor rescheduling overwhelms front desk staff.',
+        scope: '1. No password-based accounts; strictly OTP phone number login.',
+        sol: '採用無密碼登入（Passwordless OTP via SMS），提供輕量化會員中心，支援符合商家規則的自主改期與取消。',
+        userStories: '• As a customer, I want to reschedule my booking myself so I save time.',
+        gherkinAC: 'Given 會員有一筆距離預約 48 小時的訂單\nWhen 點擊改期並選擇新時段\nThen 系統應更新預約時間並釋放舊時段。',
+        wireframe: '+---------------------------------------------------+\n| 👤 會員中心 - 我的預約                            |\n| 項目：精緻洗剪護 | 2026-09-18 14:00                |\n| [更改時間]                  [取消預約]          |\n+---------------------------------------------------+',
+        seqDiag: 'User         Frontend              Auth API          Database\n │                  │                     │               │\n │── 輸入手機 OTP ──▶│                     │               │\n │                  │── POST /verify-otp ▶│               │\n │                  │                     │── Issue JWT ──▶│',
+        kpi: '自主改期比例 $\ge 50\%$；客服改期電話量下降 $50\%$。',
+        pmInsights: '1. 透過 OTP 降低會員登入摩擦力，提升自助使用率 (OKR 2).',
+        raci: {
+          pm: { desc: 'Define self-service portal rules.', actions: ['Spec definition'], dod: ['Approved'] },
+          rd: { desc: 'Build OTP authentication & portal.', actions: ['Development'], dod: ['Tested'] },
+          qa: { desc: 'Test cancellation window rules.', actions: ['Edge testing'], dod: ['Passed'] },
+          bd: { desc: 'Communicate policy to merchants.', actions: ['Documentation'], dod: ['Ready'] }
+        },
+        edgeChecklists: ['【SMS Bombing】限制每 60 秒只能請求一次 OTP 驗證碼。']
+      },
+      'Feature 06': {
+        title: 'Feature 06: Automated SMS & Push Reminders (自動化簡訊與推播提醒)',
+        voice: '"Merchants need automated reminders sent to customers to drastically reduce no-show rates."',
+        problem: 'Manual reminder calls are time-consuming, resulting in high customer no-show rates (up to 20%).',
+        scope: '1. Third-party SMS gateway integration (Twilio / Line Messaging API).',
+        sol: '建立 Celery 背景排程定時掃描即將到期的預約，透過多通道（LINE / SMS）自動發送提醒。',
+        userStories: '• As a customer, I want automated reminders so I never miss my appointment.',
+        gherkinAC: 'Given 預約時間為 24 小時後\nWhen 系統背景排程掃描觸發點\nThen 應自動透過 LINE 或簡訊發送提醒通知。',
+        wireframe: '+---------------------------------------------------+\n| ⚙️ 通知設定中心                                    |\n| [v] 預約成功即時通知                              |\n| [v] 預約前 24 小時提醒                            |\n| [v] 預約前 2 小時提醒                             |\n+---------------------------------------------------+',
+        seqDiag: 'Cron Worker  Notification Engine   SMS/LINE API      Customer\n │                  │                     │               │\n │── 掃描到期訂單 ──▶│                     │               │\n │                  │── Send API Request ▶│               │\n │                  │                     │── Deliver SMS ─▶│',
+        kpi: '爽約率降低 $15\% - 20\%$；訊息送達成功率 $\ge 99\%$。',
+        pmInsights: '1. 優先透過 LINE 發送以節省簡訊成本，LINE 失敗時自動 Fallback 至 SMS (OKR 5).',
+        raci: {
+          pm: { desc: 'Define reminder schedule rules.', actions: ['Flow definition'], dod: ['Approved'] },
+          rd: { desc: 'Implement Celery cron worker & gateways.', actions: ['Coding'], dod: ['Tested'] },
+          qa: { desc: 'Verify timer accuracy and retries.', actions: ['Load testing'], dod: ['Passed'] },
+          bd: { desc: 'Review messaging template content.', actions: ['Copywriting'], dod: ['Finalized'] }
+        },
+        edgeChecklists: ['【API Timeout】第三方簡訊商逾時自動重試機制（最多 3 次）。']
+      },
+      'Feature 07': {
+        title: 'Feature 07: Staff Shift & Leave Management (員工班表與請假管理)',
+        voice: '"Store managers need to manage staff shifts, weekly off-days, and leave requests efficiently."',
+        problem: 'Paper or Excel shift management causes severe scheduling chaos and missing staff coverage.',
+        scope: '1. No payroll calculation or salary integration in Phase 1.',
+        sol: '後台提供行事曆排班介面，員工可提交請假申請，經店長審核後自動更新可用排班狀態。',
+        userStories: '• As a store manager, I want to approve staff leave and update shifts easily.',
+        gherkinAC: 'Given 員工提交請假申請\nWhen 店長點擊「核准」\nThen 系統應自動更新該時段排班為不可預約。',
+        wireframe: '+---------------------------------------------------+\n| 📝 員工請假審核清單                               |\n| Amy - 特休假 (2026-09-20) [核准 ✓] [拒絕 ✕]       |\n+---------------------------------------------------+',
+        seqDiag: 'Manager      Frontend              Backend           Database\n │                  │                     │               │\n │── 點擊核准請假 ──▶│                     │               │\n │                  │── PUT /leave/{id} ─▶│               │\n │                  │                     │── Update DB ──▶│',
+        kpi: '排班衝突發生率 $0\%$；請假審核處理時間 $< 1$ 分鐘。',
+        pmInsights: '1. 請假核准連動行事曆鎖定，防止排班漏洞 (OKR 1).',
+        raci: {
+          pm: { desc: 'Define shift workflow.', actions: ['Spec mapping'], dod: ['Approved'] },
+          rd: { desc: 'Build shift & leave management APIs.', actions: ['Coding'], dod: ['Tested'] },
+          qa: { desc: 'Test leave conflict validation.', actions: ['Testing'], dod: ['Passed'] },
+          bd: { desc: 'Validate store use cases.', actions: ['Review'], dod: ['Verified'] }
+        },
+        edgeChecklists: ['【Last-minute Leave】請假時若已有既往預約，系統強制跳出警報。']
+      },
+      'Feature 08': {
+        title: 'Feature 08: Package & Course Credit Pass Tracking (課程券與計次卡追蹤)',
+        voice: '"Customers with multi-session course passes want to track remaining credits automatically upon each visit."',
+        problem: 'Manual paper or spreadsheet tracking of course credits leads to disputes and lost revenue.',
+        scope: '1. No multi-store credit clearing across different franchise owners in Phase 1.',
+        sol: '建立會員計次卡（Course Credit Ledger）資料表，每次預約核銷完成後自動扣除剩餘堂數。',
+        userStories: '• As a customer, I want my remaining course credits to update automatically after each service.',
+        gherkinAC: 'Given 會員持有 10 次堂數卡且剩餘 3 次\nWhen 完成本次服務核銷\nThen 系統應自動扣減 1 次，剩餘堂數顯示為 2 次。',
+        wireframe: '+---------------------------------------------------+\n| 🎫 我的課程卡片                                   |\n| 項目：頭皮養護療程 (10次套票)                     |\n| 剩餘堂數：[ 2 / 10 ]  有效期限：2027-12-31         |\n+---------------------------------------------------+',
+        seqDiag: 'Staff        Frontend              Backend           Ledger DB\n │                  │                     │               │\n │── 確認核銷 ──────▶│                     │               │\n │                  │── POST /deduct ────▶│               │\n │                  │                     │── Insert Log ─▶│',
+        kpi: '堂數核銷爭議率 $0\%$；扣除交易執行時間 $< 200\text{ms}$。',
+        pmInsights: '1. 採用會計級別的 Ledger 異動記錄表，確保堂數不會憑空消失 (OKR 2).',
+        raci: {
+          pm: { desc: 'Define credit pass logic.', actions: ['Logic spec'], dod: ['Approved'] },
+          rd: { desc: 'Implement ledger transaction APIs.', actions: ['Coding'], dod: ['Tested'] },
+          qa: { desc: 'Verify concurrency credit deduction.', actions: ['Stress test'], dod: ['Passed'] },
+          bd: { desc: 'Train front desk on course pass.', actions: ['Training'], dod: ['Trained'] }
+        },
+        edgeChecklists: ['【Zero Credit】剩餘堂數為 0 時禁止預約並提示續購。']
+      },
+      'Feature 09': {
+        title: 'Feature 09: Check-in & Front Desk Reception Flow (櫃檯快速報到與分流機制)',
+        voice: '"Front desk staff need a rapid check-in flow to greet arriving customers and route them to available stations."',
+        problem: 'Queuing at the front desk causes congestion and delays during peak business hours.',
+        scope: '1. No hardware QR code scanner integration required in Phase 1 (supports manual tap/search).',
+        sol: '前端提供快速櫃檯看板（Front Desk Command Board），支援手機號碼末 4 碼快速搜尋與一鍵報到。',
+        userStories: '• As a receptionist, I want to check in arriving customers instantly so queues move fast.',
+        gherkinAC: 'Given 客戶抵達櫃檯報到\nWhen 櫃檯人員輸入手機末 4 碼並點擊「報到」\nThen 系統應將訂單狀態更新為「已報到（Checked-in）」。',
+        wireframe: '+---------------------------------------------------+\n| 🛎️ 櫃檯快速報到台                                 |\n| 搜尋手機末四碼: [ 5820 ]                          |\n| 14:00 Vicky Chen (洗髮) -> [ 一鍵報到 ✓ ]         |\n+---------------------------------------------------+',
+        seqDiag: 'Receptionist Frontend              Backend           Database\n │                  │                     │               │\n │── 輸入末四碼 ────▶│                     │               │\n │                  │── GET /search ─────▶│               │\n │                  │── PUT /check-in ───▶│               │',
+        kpi: '報到處理時間 $< 5$ 秒；櫃檯排隊等待時間縮短 $40\%$。',
+        pmInsights: '1. 優化櫃檯操作 UI，將常用動作控制在 1 次點擊內 (OKR 2).',
+        raci: {
+          pm: { desc: 'Design front desk reception UX.', actions: ['Wireframing'], dod: ['Approved'] },
+          rd: { desc: 'Build rapid search and check-in APIs.', actions: ['Coding'], dod: ['Tested'] },
+          qa: { desc: 'Test peak hour query performance.', actions: ['Testing'], dod: ['Passed'] },
+          bd: { desc: 'Conduct store pilot testing.', actions: ['Pilot audit'], dod: ['Verified'] }
+        },
+        edgeChecklists: ['【Late Arrival】遲到超過 15 分鐘的自動標記與彈性處理。']
+      },
+      'Feature 10': {
+        title: 'Feature 10: Waiting List & Slot Backfill System (候補名單與空檔遞補機制)',
+        voice: '"Customers want to join a waiting list for fully booked slots, and get notified instantly when a slot opens up."',
+        problem: 'Cancellations leave empty time slots that result in lost merchant revenue if not backfilled.',
+        scope: '1. No automated bidding for cancelled slots in Phase 1.',
+        sol: '當熱門時段額滿時允許用戶登記候補（Waiting List）；原預約取消時系統自動觸發 FIFO 候位遞補通知。',
+        userStories: '• As a customer, I want to join a waiting list so I can grab cancelled slots immediately.',
+        gherkinAC: 'Given 某時段已滿且有 3 人在候位名單中\nWhen 原預約客戶取消該時段\nThen 系統應自動發送搶位通知給第一順位候位者。',
+        wireframe: '+---------------------------------------------------+\n| ⏳ 時段已滿，加入候補                             |\n| 目前候補排位：第 2 位                             |\n| [ 開啟候位推播通知 (Active) ]                     |\n+---------------------------------------------------+',
+        seqDiag: 'System       Cancellation Event    Waiting List Engine Customer\n │                  │                     │               │\n │── 偵測時段釋放 ──▶│                     │               │\n │                  │── 查詢排位第一名 ──▶│               │\n │                  │                     │── 發送搶位通知 ▶│',
+        kpi: '空檔遞補成功率 $\ge 40\%$；釋出後 10 分鐘內搶位完成。',
+        pmInsights: '1. 透過自動化候位遞補提升商家營業額與資源利用率 (OKR 1).',
+        raci: {
+          pm: { desc: 'Define waiting list algorithm.', actions: ['Spec mapping'], dod: ['Approved'] },
+          rd: { desc: 'Implement FIFO backfill engine.', actions: ['Coding'], dod: ['Tested'] },
+          qa: { desc: 'Test race condition on slot backfill.', actions: ['Stress test'], dod: ['Passed'] },
+          bd: { desc: 'Review backfill business value.', actions: ['Review'], dod: ['Verified'] }
+        },
+        edgeChecklists: ['【Simultaneous Backfill】多人同時收到候補通知時的先搶先得機制。']
+      },
+      'Feature 11': {
+        title: 'Feature 11: Online Payment & Deposit Gateway (線上付款與訂金金流整合)',
+        voice: '"Merchants require online deposits or full payments during booking to eliminate customer no-shows."',
+        problem: 'Pure pay-at-counter bookings suffer from high no-show rates and financial uncertainty.',
+        scope: '1. Integration with regional payment gateways (GreenPay / TapPay / Stripe).',
+        sol: '串接第三方支付閘道器，支援信用卡與行動支付線上預付訂金或全額款項，並透過 Webhook 同步交易狀態。',
+        userStories: '• As a merchant, I want customers to pay a deposit online so I am protected against no-shows.',
+        gherkinAC: 'Given 用戶在結帳頁面選擇信用卡付款\nWhen 完成授權並收到支付閘道器成功回呼（Webhook）\nThen 系統應將訂單標記為「已付訂金」並鎖定預約。',
+        wireframe: '+---------------------------------------------------+\n| 💳 線上付款與訂金 (NT$ 500)                       |\n| [ 信用卡號: 4000 0000 0000 0000 ]                 |\n| [ 效期: MM/YY ]   [ CVC: 123 ]                    |\n|                     [ 確認安全付款 ]              |\n+---------------------------------------------------+',
+        seqDiag: 'User         Frontend              Payment Gateway   Backend (Webhook)\n │                  │                     │               │\n │── 提交信用卡 ────▶│                     │               │\n │                  │── 授權請求 ────────▶│               │\n │                  │                     │── Webhook 200 OK ▶│',
+        kpi: '線上付款成功率 $\ge 98\%$；交易回呼延遲 $< 2$ 秒。',
+        pmInsights: '1. 確保 Webhook 具備冪等性（Idempotency），防止重複扣款與狀態異常 (OKR 1).',
+        raci: {
+          pm: { desc: 'Define payment flow & refund policies.', actions: ['Spec definition'], dod: ['Approved'] },
+          rd: { desc: 'Integrate payment gateway & webhook.', actions: ['Coding'], dod: ['Tested'] },
+          qa: { desc: 'Test payment failure & timeout edge cases.', actions: ['UAT testing'], dod: ['Passed'] },
+          bd: { desc: 'Verify merchant payout accounts.', actions: ['Audit'], dod: ['Verified'] }
+        },
+        edgeChecklists: ['【Orphan Transaction】付款成功但 Webhook 未送達時的對帳背景排程修復。']
+      },
+      'Feature 12': {
+        title: 'Feature 12: Business Revenue & Performance Dashboard (營業額與業績戰情室報表)',
+        voice: '"Store owners and managers need real-time revenue and staff performance dashboards to track business health."',
+        problem: 'Scattered data and manual bookkeeping make it impossible to track daily revenue and staff KPIs accurately.',
+        scope: '1. No advanced predictive machine learning revenue forecasting in Phase 1.',
+        sol: '建構戰情室圖表模組（Chart.js / Recharts），提供今日營收、預約人次、服務項目佔比與員工個人業績排行。',
+        userStories: '• As a store owner, I want a real-time revenue dashboard so I can monitor business performance daily.',
+        gherkinAC: 'Given 管理員進入戰情室報表頁面\nWhen 選擇「本月」時間區間\nThen 系統應正確加總並渲染總營業額、客單價與熱門服務排行圖表。',
+        wireframe: '+---------------------------------------------------+\n| 📊 營業額與業績戰情室                             |\n| 本月總營收: NT$ 458,000 (+12% vs 上月)             |\n| [ 柱狀圖：每日營收趨勢 ]  [ 圓餅圖：熱門服務佔比 ]   |\n+---------------------------------------------------+',
+        seqDiag: 'Manager      Frontend              Analytics API     Database\n │                  │                     │               │\n │── 選擇報表區間 ──▶│                     │               │\n │                  │── GET /analytics ──▶│               │\n │                  │                     │── Aggregation ─▶│',
+        kpi: '報表資料載入時間 $< 1$ 秒；數據準確率 $100\%$。',
+        pmInsights: '1. 透過資料庫預先彙總（Pre-aggregation）表加速戰情室載入速度 (OKR 2).',
+        raci: {
+          pm: { desc: 'Define dashboard KPIs and metrics.', actions: ['Spec mapping'], dod: ['Approved'] },
+          rd: { desc: 'Implement analytics queries and charts.', actions: ['Coding'], dod: ['Tested'] },
+          qa: { desc: 'Verify calculation accuracy against raw data.', actions: ['Data audit'], dod: ['Passed'] },
+          bd: { desc: 'Review report usefulness with owners.', actions: ['Feedback'], dod: ['Verified'] }
+        },
+        edgeChecklists: ['【Timezone Offset】跨時區營收統計的時間戳記對齊校驗。']
+      },
+      'Feature 13': {
+        title: 'Feature 13: Customer Relationship Management (CRM) Notes (客戶偏好與歷史備忘錄)',
+        voice: '"Front desk and service staff need to record customer preferences, allergies, and special requests in CRM notes."',
+        problem: 'Forgetting client preferences leads to poor service personalization and customer churn.',
+        scope: '1. No automated sentiment analysis on CRM notes in Phase 1.',
+        sol: '在會員檔案中加入結構化與非結構化 CRM 備忘錄欄位，支援標籤分類（如：VIP、過敏源、喜好溝通方式）。',
+        userStories: '• As a service staff, I want to view customer notes before service so I can provide personalized care.',
+        gherkinAC: 'Given 服務人員打開客戶預約詳情\nWhen 查看 CRM 備忘錄\nThen 應能清楚看到上次記錄的過敏警示與喜好偏好。',
+        wireframe: '+---------------------------------------------------+\n| 📋 客戶 CRM 檔案備忘錄                            |\n| 姓名: Vicky Chen [VIP 標籤]                       |\n| 備忘紀錄: 對精油成分敏感，喜歡安靜不被打擾         |\n| [+ 新增備忘紀錄]                                  |\n+---------------------------------------------------+',
+        seqDiag: 'Staff        Frontend              Backend           CRM Database\n │                  │                     │               │\n │── 查詢客戶檔案 ──▶│                     │               │\n │                  │── GET /crm/{id} ───▶│               │\n │                  │                     │── Fetch Notes ─▶│',
+        kpi: 'CRM 備忘錄讀取延遲 $< 200\text{ms}$；客戶滿意度提升 $15\%$。',
+        pmInsights: '1. 敏感客戶資料嚴格遵守隱私權規範與存取權限控管 (OKR 1).',
+        raci: {
+          pm: { desc: 'Define CRM fields and privacy rules.', actions: ['Spec definition'], dod: ['Approved'] },
+          rd: { desc: 'Build CRM notes CRUD APIs.', actions: ['Coding'], dod: ['Tested'] },
+          qa: { desc: 'Test permission roles for CRM notes.', actions: ['Security test'], dod: ['Passed'] },
+          bd: { desc: 'Train staff on CRM best practices.', actions: ['Training'], dod: ['Trained'] }
+        },
+        edgeChecklists: ['【XSS Protection】CRM 備忘錄文字輸入框的 HTML 消毒與跳脫防護。']
+      },
+      'Feature 14': {
+        title: 'Feature 14: Automated Review & Feedback Collector (自動化滿意度回饋收集)',
+        voice: '"Merchants want automated review collection sent to customers post-service to build online reputation."',
+        problem: 'Manual post-service review collection yields very low response rates (< 5%).',
+        scope: '1. No automated social media public posting in Phase 1.',
+        sol: '在服務完成後 2 小時自動發送滿意度問卷（1-5 星評分與文字回饋），並將高分好評引導至 Google Maps。',
+        userStories: '• As a customer, I want to rate my service easily via a quick link after my visit.',
+        gherkinAC: 'Given 客戶剛完成服務離店\nWhen 系統在 2 小時後發送滿意度調查連結\nThen 客戶點擊並提交 5 星評價後，系統應記錄回饋並顯示感謝畫面。',
+        wireframe: '+---------------------------------------------------+\n| ⭐ 請問您對本次服務滿意嗎？                       |\n| [★] [★] [★] [★] [★] (5顆星)                     |\n| 意見回饋: [ 服務非常專業，環境舒適！ ]            |\n|                     [ 送出評分 ]                  |\n+---------------------------------------------------+',
+        seqDiag: 'Cron Worker  Feedback Engine       Notification API  Customer\n │                  │                     │               │\n │── 偵測服務完成 ──▶│                     │               │\n │                  │── 發送問卷連結 ────▶│               │\n │                  │                     │── 點擊填寫 ───▶│',
+        kpi: '滿意度問卷回覆率 $\ge 25\%$；平均評分 $\ge 4.7$ 星。',
+        pmInsights: '1. 透過自動化定時觸發大幅提升回覆率，建立正向口碑迴圈 (OKR 1).',
+        raci: {
+          pm: { desc: 'Define feedback collection trigger rules.', actions: ['Spec mapping'], dod: ['Approved'] },
+          rd: { desc: 'Build survey form and scheduler.', actions: ['Coding'], dod: ['Tested'] },
+          qa: { desc: 'Verify survey link expiration and tokens.', actions: ['Testing'], dod: ['Passed'] },
+          bd: { desc: 'Design review incentive guidelines.', actions: ['Guidelines'], dod: ['Finalized'] }
+        },
+        edgeChecklists: ['【Expired Token】超過 7 天的滿意度問卷連結自動失效提示。']
+      },
+      'Feature 15': {
+        title: 'Feature 15: Promotional Discount & Coupon Code Engine (優惠券與折扣碼引擎)',
+        voice: '"Marketers need a robust coupon code and discount engine to run promotional campaigns and attract new users."',
+        problem: 'Inability to offer promo codes restricts marketing campaigns and customer acquisition.',
+        scope: '1. No complex multi-tier affiliate referral commission payouts in Phase 1.',
+        sol: '建立彈性折扣碼引擎，支援折抵固定金額（如 -$100）或百分比折扣（如 9折），並設定使用次數與期限限制。',
+        userStories: '• As a customer, I want to apply a promo code at checkout so I get a discount.',
+        gherkinAC: 'Given 用戶輸入有效折扣碼「SUMMER2026」\nWhen 點擊套用\nThen 結帳金額應即時扣除對應折扣並更新總金額。',
+        wireframe: '+---------------------------------------------------+\n| 🎟️ 優惠券與折扣碼                                 |\n| 輸入折扣碼: [ SUMMER2026      ] [ 套用 ]          |\n| 優惠已生效：現折 NT$ 150                          |\n+---------------------------------------------------+',
+        seqDiag: 'User         Frontend              Discount Engine   Database\n │                  │                     │               │\n │── 輸入折扣碼 ────▶│                     │               │\n │                  │── POST /validate ──▶│               │\n │                  │                     │── Check Rules ─▶│',
+        kpi: '折扣碼套用成功率 $100\%$；驗證響應時間 $< 150\text{ms}$。',
+        pmInsights: '1. 採用資料庫樂觀鎖定（Optimistic Locking）防止限量優惠券遭超額使用 (OKR 1).',
+        raci: {
+          pm: { desc: 'Define coupon rules and types.', actions: ['Spec definition'], dod: ['Approved'] },
+          rd: { desc: 'Build validation and calculation engine.', actions: ['Coding'], dod: ['Tested'] },
+          qa: { desc: 'Test expired and exhausted coupons.', actions: ['Edge testing'], dod: ['Passed'] },
+          bd: { desc: 'Coordinate marketing coupon launch.', actions: ['Campaign plan'], dod: ['Ready'] }
+        },
+        edgeChecklists: ['【Exhausted Coupons】限量 100 張的優惠券在最後一秒同時搶用時的防超發。']
+      },
+      'Feature 16': {
+        title: 'Feature 16: AI Smart Scheduling Assistant (AI 智慧排程與最佳化建議)',
+        voice: '"Store managers want AI recommendations to optimize staff scheduling based on historical peak hours."',
+        problem: 'Manual staff scheduling often mismatches staffing levels with actual customer demand peaks.',
+        scope: '1. No autonomous staff schedule auto-publishing without manager confirmation.',
+        sol: '分析歷史預約大數據，透過演算法預測每小時客流量高峰，並向店長建議最佳人力配置排班表。',
+        userStories: '• As a store manager, I want AI scheduling suggestions so I can staff efficiently during peak hours.',
+        gherkinAC: 'Given 系統累積了過去 3 個月的預約大數據\nWhen 店長點擊「AI 智慧排班建議」\nThen 系統應產出建議排班表並標示預期客流高峰時段。',
+        wireframe: '+---------------------------------------------------+\n| 🤖 AI 智慧排程建議                                |\n| 預測週五 18:00 為尖峰客流 (預估需求: 5人)          |\n| 建議增加班次：總監 John、美容師 Amy               |\n|                     [ 一鍵套用建議排班 ]          |\n+---------------------------------------------------+',
+        seqDiag: 'Manager      Frontend              AI Engine         BigQuery\n │                  │                     │               │\n │── 點擊分析建議 ──▶│                     │               │\n │                  │── GET /ai-schedule ▶│               │\n │                  │                     │── Query Trends ▶│',
+        kpi: '人力與客流匹配率提升 $25\%$；排班計算時間 $< 3$ 秒。',
+        pmInsights: '1. AI 僅提供決策支援建議（Advisory），最終發布權仍保留給店長 (OKR 2).',
+        raci: {
+          pm: { desc: 'Define AI scheduling heuristic rules.', actions: ['Spec mapping'], dod: ['Approved'] },
+          rd: { desc: 'Implement data aggregation & recommendation API.', actions: ['Coding'], dod: ['Tested'] },
+          qa: { desc: 'Verify recommendation math accuracy.', actions: ['Testing'], dod: ['Passed'] },
+          bd: { desc: 'Demonstrate AI value to pilot merchants.', actions: ['Demo'], dod: ['Verified'] }
+        },
+        edgeChecklists: ['【Insufficient Data】新開張店家資料不足時的預設排班 Fallback 機制。']
+      },
+      'Feature 17': {
+        title: 'Feature 17: AI-Powered Chatbot Booking Agent (AI 智能聊天機器人預約助理)',
+        voice: '"End-users want to chat naturally with an AI bot on LINE/WhatsApp to complete bookings effortlessly."',
+        problem: 'Static booking forms require tedious clicks; conversational booking drives higher mobile engagement.',
+        scope: '1. Integration with LLM APIs (OpenAI / Claude) with structured function calling.',
+        sol: '串接 LLM Function Calling，讓消費者透過自然語言對話（如：「幫我約明天下午兩點找John洗頭」），自動完成查空檔與預約。',
+        userStories: '• As a customer, I want to chat with an AI assistant to book appointments naturally.',
+        gherkinAC: 'Given 用戶在 LINE 聊天室輸入「幫我約明天下午兩點」\nWhen AI Chatbot 解析意圖並呼叫預約 API\nThen Bot 應回傳確認卡片並引導完成預約。',
+        wireframe: '+---------------------------------------------------+\n| 💬 Omcean AI Booking Assistant                    |\n| User: 幫我約明天下午兩點找 John 洗頭              |\n| Bot: 沒問題！已為您保留 2026-09-16 14:00 與 John  |\n|      請點擊下方按鈕確認預約：[ 確認預約 ]         |\n+---------------------------------------------------+',
+        seqDiag: 'User         LINE Channel          AI Agent (LLM)    Booking API\n │                  │                     │               │\n │── 發送聊天訊息 ──▶│                     │               │\n │                  │── Parse Intent ────▶│               │\n │                  │                     │── POST /book ──▶│',
+        kpi: '聊天機器人預約成功率 $\ge 70\%$；意圖識別準確率 $\ge 90\%$。',
+        pmInsights: '1. 採用 Structured Function Calling 確保 LLM 不會產生幻覺並安全寫入資料庫 (OKR 2).',
+        raci: {
+          pm: { desc: 'Define chatbot conversation flows & prompts.', actions: ['Prompt design'], dod: ['Approved'] },
+          rd: { desc: 'Integrate LLM API & function calling.', actions: ['Coding'], dod: ['Tested'] },
+          qa: { desc: 'Test edge cases in natural language prompts.', actions: ['Prompt testing'], dod: ['Passed'] },
+          bd: { desc: 'Review chatbot UX with beta users.', actions: ['Beta feedback'], dod: ['Verified'] }
+        },
+        edgeChecklists: ['【Ambiguous Input】當用戶語意不清時 AI 自動追問澄清的防呆對話。']
+      },
+      'Feature 18': {
+        title: 'Feature 18: Command Hub Release & Sprint Tracker (Command Hub 版本與開發進度追蹤)',
+        voice: '"Product managers and engineering leads need a unified command hub to track sprint releases and project progress."',
+        problem: 'Fragmented project tracking across disparate tools leads to missed milestones and misaligned teams.',
+        scope: '1. In-house built lightweight tracker integrated into PM Command Center.',
+        sol: '建構本 Command Center 戰情室，實現 8 大維度 PRD、甘特圖與 Jira 看板雙向即時連動。',
+        userStories: '• As a product manager, I want a centralized command hub so I can track all 20 features effortlessly.',
+        gherkinAC: 'Given 用戶在甘特圖調整 Sprint 進度條\nWhen 拖曳更新進度至 100%\nThen 戰情室總進度與 Jira 看板狀態應即時同步更新。',
+        wireframe: '+---------------------------------------------------+\n| 🎛️ PM Command Center - Sprint Tracker             |\n| 整體專案進度: [████████████░░░░░░░░] 60%            |\n| Sprint 1 (W1-W2) [已完成] | Sprint 2 (進行中)     |\n+---------------------------------------------------+',
+        seqDiag: 'PM           Frontend UI           State Manager     Local Store\n │                  │                     │               │\n │── 調整進度滑桿 ──▶│                     │               │\n │                  │── Update State ────▶│               │\n │                  │                     │── Sync DOM ──▶│',
+        kpi: '專案如期交付率 $100\%$；範圍異動控管在 $< 10\%$。',
+        pmInsights: '1. 實現單一真實來源（Single Source of Truth），消除跨部門資訊落差 (OKR 3).',
+        raci: {
+          pm: { desc: 'Design command center architecture.', actions: ['Spec mapping'], dod: ['Approved'] },
+          rd: { desc: 'Build interactive UI, Gantt & Kanban.', actions: ['Coding'], dod: ['Tested'] },
+          qa: { desc: 'Verify real-time state synchronization.', actions: ['Testing'], dod: ['Passed'] },
+          bd: { desc: 'Use command hub for stakeholder alignment.', actions: ['Alignment'], dod: ['Verified'] }
+        },
+        edgeChecklists: ['【State Persistence】重新整理頁面時 LocalStorage 狀態不丟失。']
+      },
+      'Feature 19': {
+        title: 'Feature 19: Cross-Module Feedback & Bug Triage (跨模組回報與 Bug 快速分流)',
+        voice: '"Cross-functional teams need a structured bug triage mechanism to report and route issues across modules instantly."',
+        problem: 'Bugs reported informally via chat get lost, leading to unresolved production defects.',
+        scope: '1. No external Jira REST API bidirectional webhook syncing in Phase 1 (uses internal triage table).',
+        sol: '內建跨模組回報與 Bug 分流中心，支援依嚴重程度（Critical / Major / Minor）與負責團隊進行快速指派。',
+        userStories: '• As a QA engineer, I want to log bugs and assign modules so they get resolved quickly.',
+        gherkinAC: 'Given QA 發現支付模組 Bug 並提交回報\nWhen 設定嚴重程度為 Critical 並指派給 Engineering\nThen 該 Bug 應即時出現在工程團隊的待辦清單中。',
+        wireframe: '+---------------------------------------------------+\n| 🐛 Bug Triage 中心                                |\n| [Critical] Feature 11 Webhook 逾時未更新 (指派: RD)  |\n| [Status: Open]                   [標記為已解決 ✓] |\n+---------------------------------------------------+',
+        seqDiag: 'QA           Frontend              Bug Database      Engineering\n │                  │                     │               │\n │── 提交 Bug 報告 ─▶│                     │               │\n │                  │── INSERT INTO bugs ▶│               │\n │                  │                     │── Alert Team ─▶│',
+        kpi: 'Critical Bug 解決時間 $< 4$ 小時；Bug 回報遺漏率 $0\%$。',
+        pmInsights: '1. 建立明確的 Bug 嚴重度 SLA，確保生產環境穩定度 (OKR 1).',
+        raci: {
+          pm: { desc: 'Define bug triage severity criteria.', actions: ['Spec mapping'], dod: ['Approved'] },
+          rd: { desc: 'Build bug reporting & triage board.', actions: ['Coding'], dod: ['Tested'] },
+          qa: { desc: 'Log and verify bug triage workflow.', actions: ['Testing'], dod: ['Passed'] },
+          bd: { desc: 'Report client-facing bugs.', actions: ['Feedback'], dod: ['Verified'] }
+        },
+        edgeChecklists: ['【Duplicate Bug】相同模組重複報修時的合併與去重機制。']
+      },
+      'Feature 20': {
+        title: 'Feature 20: Unified API & Third-Party Integration Hub (跨平台 API 與第三方工具整合中心)',
+        voice: '"Enterprise merchants demand robust API and webhook integrations to sync bookings with their internal ERP/CRM systems."',
+        problem: 'Closed systems prevent enterprise clients from syncing booking data with their existing corporate software.',
+        scope: '1. RESTful API with API Key authentication and standard webhook payloads.',
+        sol: '建構統一 API 整合中心與 Developer Portal，提供標準 OpenAPI (Swagger) 文件、API Key 管理與 Webhook 事件訂閱。',
+        userStories: '• As an enterprise developer, I want robust REST APIs so I can sync bookings with our ERP system.',
+        gherkinAC: 'Given 企業開發者帶有有效 API Key 呼叫 `GET /api/v1/bookings`\nWhen 發送請求\nThen 系統應回傳授權的預約資料 JSON 陣列。',
+        wireframe: '+---------------------------------------------------+\n| 🔌 API & Integration Hub                          |\n| API Key: ob_live_9981273918237912 [重新產生]       |\n| Webhook URL: [ https://api.client.com/webhook ]   |\n| [v] 訂閱 Event: booking.created / booking.cancelled |\n+---------------------------------------------------+',
+        seqDiag: 'Client App   API Gateway           Auth Middleware   Database\n │                  │                     │               │\n │── API Request ───▶│                     │               │\n │                  │── Verify API Key ──▶│               │\n │                  │                     │── Fetch Data ─▶│',
+        kpi: 'API 正常運行時間 $\ge 99.9\%$；API 回應延遲 P99 $< 200\text{ms}$。',
+        pmInsights: '1. 採用 Rate Limiting（每分鐘 60 次請求）保護 API 伺服器免受 DoS 攻擊 (OKR 1).',
+        raci: {
+          pm: { desc: 'Define public API scope and endpoints.', actions: ['Spec definition'], dod: ['Approved'] },
+          rd: { desc: 'Implement API gateway, auth & docs.', actions: ['Coding'], dod: ['Tested'] },
+          qa: { desc: 'Perform API load and security testing.', actions: ['Security test'], dod: ['Passed'] },
+          bd: { desc: 'Provide API docs to enterprise clients.', actions: ['Documentation'], dod: ['Published'] }
+        },
+        edgeChecklists: ['【Rate Limit Exceeded】當 API 請求超過每分鐘頻率限制時回傳 429 Too Many Requests。']
+      }
+    };
+
+    const i18n = {
+      zh: {
+        mainTitle: "Omcean Booking PM 指揮中心",
+        subTitle: "[ROLE: 15-Yr Senior PM] Feature 01 ~ Feature 20 深度專業級 PRD 規格 • 支援中英文雙向即時切換",
+        okrHeader: "5 大專案 OKR 核心護欄 (點擊數值可直接編輯)",
+        step1Title: "需求探索與範圍凍結 / 自定義需求處理",
+        featureLabel: "功能需求標題 (Feature 01 ~ 20)",
+        scopeHeader: "範圍邊界：第一階段絕對不予納入 (Out of Scope)",
+        prdHeader: "資深 PM 級 8 大維度 PRD 規格面板",
+        pmDecisions: "PM 戰情室決策",
+        raciTitle: "跨部門權責矩陣與交付標準 (RACI & DoD) - 各團隊獨立檢視",
+        editTip: "✏️ 點擊任意區塊即可直接手動編輯內容",
+        step2Title: "交付時程與 Jira 執行看板 (甘特圖與看板雙向連動)",
+        ganttDesc: "📊 互動式甘特圖：調整 Sprint 或進度條可即時連動看板與總進度",
+        selectFeature: "選擇功能:",
+        ganttCol1: "跨部門團隊與 Sprint / 進度控制",
+        kanbanHeader: "JIRA 敏捷看板 (看板雙向同步)",
+        kanbanTip: "點擊卡片上的 ◀ ▶ 按鈕即可跨欄位移動，並自動位移甘特圖進度",
+        uatTitle: "PM 標準測試目標與邊界異常檢核表 (Edge Cases)",
+        uatDesc: "針對目前所選功能的邊界異常測試檢核清單：",
+        step3Title: "跨部門啟動共識與例會協作 (Kickoff Alignment & Regular Syncs)"
+      },
+      en: {
+        mainTitle: "Omcean Booking PM Command Center",
+        subTitle: "[ROLE: 15-Yr Senior PM] Feature 01 ~ Feature 20 Senior PRD Specs • Bilingual Toggle",
+        okrHeader: "5 Project OKR Guardrails (Click values to edit)",
+        step1Title: "Discovery & Scope Freeze / Custom Ad-hoc Handling",
+        featureLabel: "Feature Requirement Title (Feature 01 ~ 20)",
+        scopeHeader: "Scope Boundary: Strictly Out of Scope for Phase 1",
+        prdHeader: "Senior PM 8-Step PRD Specification Board",
+        pmDecisions: "PM Strategic Decisions",
+        raciTitle: "Cross-Functional RACI Matrix & Definition of Done (DoD) - By Team",
+        editTip: "✏️ Click any section to edit text",
+        step2Title: "Delivery Schedule & Jira Execution (Gantt & Kanban)",
+        ganttDesc: "📊 Interactive Gantt: Shift Sprints & Slider Progress",
+        selectFeature: "Select Feature:",
+        ganttCol1: "Cross-Functional Team & Sprint / Progress Control",
+        kanbanHeader: "JIRA AGILE KANBAN BOARD",
+        kanbanTip: "Use ◀ ▶ buttons on each card to move across columns",
+        uatTitle: "PM Normal Testing Targets (Edge Cases Checklists)",
+        uatDesc: "Testing targets and verification checklists for the selected feature:",
+        step3Title: "Cross-Functional Kickoff Alignment & Regular Syncs"
+      }
+    };
+
+    let currentLang = 'zh';
+
+    function setLanguage(lang) {
+      currentLang = lang;
+      document.documentElement.lang = lang === 'zh' ? 'zh-TW' : 'en';
+
+      if (lang === 'zh') {
+        document.getElementById('btn-lang-zh').className = "px-2.5 py-1 rounded bg-cyber-cyan text-slate-950 font-bold transition";
+        document.getElementById('btn-lang-en').className = "px-2.5 py-1 rounded text-slate-400 hover:text-white transition";
+      } else {
+        document.getElementById('btn-lang-en').className = "px-2.5 py-1 rounded bg-cyber-cyan text-slate-950 font-bold transition";
+        document.getElementById('btn-lang-zh').className = "px-2.5 py-1 rounded text-slate-400 hover:text-white transition";
+      }
+
+      document.getElementById('txt-main-title').innerText = i18n[lang].mainTitle;
+      document.getElementById('txt-sub-title').innerText = i18n[lang].subTitle;
+      document.getElementById('txt-okr-header').innerText = i18n[lang].okrHeader;
+      document.getElementById('txt-step1-title').innerText = i18n[lang].step1Title;
+      document.getElementById('txt-feature-label').innerText = i18n[lang].featureLabel;
+      document.getElementById('txt-scope-header').innerText = i18n[lang].scopeHeader;
+      document.getElementById('txt-prd-header').innerText = i18n[lang].prdHeader;
+      document.getElementById('txt-pm-decisions').innerText = i18n[lang].pmDecisions;
+      document.getElementById('txt-step2-title').innerText = i18n[lang].step2Title;
+      document.getElementById('txt-gantt-desc').innerText = i18n[lang].ganttDesc;
+      document.getElementById('txt-select-feature').innerText = i18n[lang].selectFeature;
+      document.getElementById('txt-gantt-col1').innerText = i18n[lang].ganttCol1;
+      document.getElementById('txt-kanban-header').innerText = i18n[lang].kanbanHeader;
+      document.getElementById('txt-kanban-tip').innerText = i18n[lang].kanbanTip;
+      document.getElementById('txt-uat-title').innerText = i18n[lang].uatTitle;
+      document.getElementById('txt-uat-desc').innerText = i18n[lang].uatDesc;
+      document.getElementById('txt-step3-title').innerText = i18n[lang].step3Title;
+
+      const currentSelected = document.getElementById('req-title-select') ? document.getElementById('req-title-select').value : 'Feature 01';
+      initDropdowns();
+      if(document.getElementById('req-title-select')) {
+        document.getElementById('req-title-select').value = currentSelected || 'Feature 01';
+        onTitleDropdownChanged(document.getElementById('req-title-select').value);
+      }
+    }
+
+    function getFeatureData(code) {
+      if (code === 'CUSTOM-ADHOC') {
+        return {
+          code: 'CUSTOM-ADHOC',
+          title: currentLang === 'zh' ? '⭐ [+ 建立自定義需求]' : '⭐ [+ Create Custom Ad-hoc Requirement]',
+          voice: '"Stakeholder requested a custom feature outside standard Phase 1 backlog."',
+          problem: 'Requires PM impact assessment, scope boundary check, and strict out-of-scope enforcement.',
+          scope: '1. Strict Phase 1 freeze: Postponed to Phase 2 unless blocking core revenue.',
+          sol: '進行 PM 影響評估與範圍邊界檢查，若非核心營收阻礙則強制延後至 Phase 2。',
+          userStories: '• As a stakeholder, I want custom ad-hoc features evaluated against ROI and scope boundaries.',
+          gherkinAC: 'Given custom request is submitted, When evaluated, Then it is either deferred to Phase 2 or scoped.',
+          wireframe: '+---------------------------------------------------+\n| 自定義需求評估表                                   |\n| 需求名稱: [ _______________ ]                     |\n| 預期商業效益: [ ___________ ]                     |\n| 評估結果: [ 延後至 Phase 2 v ]                    |\n+---------------------------------------------------+',
+          seqDiag: 'Stakeholder  PM Reviewer           CCB Board         Backlog\n │                  │                     │               │\n │── 提出新需求 ─▶│                     │               │\n │                  │── 評估 ROI ────────▶│               │\n │                  │                     │── 決議凍結 ──▶│',
+          kpi: '範圍異動率控制在 $< 10\%$ 以內。',
+          pmInsights: '1. 嚴格範圍控管防止專案範疇潛變 (Scope Creep) (OKR 4).',
+          raci: {
+            pm: { desc: 'Evaluate business ROI and enforce scope boundaries.', actions: ['Assess impact'], dod: ['ROI signed off'] },
+            rd: { desc: 'Assess technical feasibility.', actions: ['Feasibility check'], dod: ['Architecture review'] },
+            qa: { desc: 'Review test requirements.', actions: ['Test planning'], dod: ['Test plan ready'] },
+            bd: { desc: 'Confirm stakeholder expectations.', actions: ['Expectation alignment'], dod: ['Aligned'] }
+          },
+          edgeChecklists: ['【Concurrency】Custom transaction consistency.', '【Network Drop】Fallback error handling.']
+        };
+      }
+      return featuresData[code] || featuresData['Feature 01'];
+    }
+
+    function initDropdowns() {
+      const step1Select = document.getElementById('req-title-select');
+      const step3Select = document.getElementById('step3-filter-module');
+      const modalSelect = document.getElementById('modal-preset-select');
+      const ganttFilterSelect = document.getElementById('gantt-filter-module');
+      const kanbanFilterSelect = document.getElementById('kanban-filter-module');
+      
+      if (!step1Select) return;
+
+      step1Select.innerHTML = '';
+      if (step3Select) step3Select.innerHTML = '';
+      if (modalSelect) modalSelect.innerHTML = '<option value="">-- Select Feature --</option>';
+      if (ganttFilterSelect) ganttFilterSelect.innerHTML = '';
+      if (kanbanFilterSelect) kanbanFilterSelect.innerHTML = '<option value="ALL">All Features</option>';
+
+      const customOpt1 = document.createElement('option');
+      customOpt1.value = 'CUSTOM-ADHOC';
+      customOpt1.text = currentLang === 'zh' ? '⭐ [+ 建立自定義需求]' : '⭐ [+ Create Custom Ad-hoc Requirement]';
+      step1Select.appendChild(customOpt1);
+
+      if (step3Select) {
+        const customOpt3 = document.createElement('option');
+        customOpt3.value = 'CUSTOM-ADHOC';
+        customOpt3.text = currentLang === 'zh' ? '⭐ [+ 建立自定義需求]' : '⭐ [+ Create Custom Ad-hoc Requirement]';
+        step3Select.appendChild(customOpt3);
+      }
+
+      let optGroup1 = document.createElement('optgroup');
+      optGroup1.label = currentLang === 'zh' ? '── Feature 01 ~ Feature 20 ──' : '── Feature 01 ~ Feature 20 ──';
+      let optGroup3 = document.createElement('optgroup');
+      optGroup3.label = currentLang === 'zh' ? '── Feature 01 ~ Feature 20 ──' : '── Feature 01 ~ Feature 20 ──';
+
+      for (let i = 1; i <= 20; i++) {
+        const key = `Feature ${i < 10 ? '0' + i : i}`;
+        const fData = getFeatureData(key);
+        
+        const opt1 = document.createElement('option');
+        opt1.value = key;
+        opt1.text = fData.title;
+        optGroup1.appendChild(opt1);
+
+        if (step3Select) {
+          const opt3 = document.createElement('option');
+          opt3.value = key;
+          opt3.text = fData.title;
+          optGroup3.appendChild(opt3);
+        }
+
+        if (modalSelect) {
+          const opt2 = document.createElement('option');
+          opt2.value = key;
+          opt2.text = fData.title;
+          modalSelect.appendChild(opt2);
+        }
+
+        if (ganttFilterSelect) {
+          const opt4 = document.createElement('option');
+          opt4.value = key;
+          opt4.text = fData.title;
+          ganttFilterSelect.appendChild(opt4);
+        }
+
+        if (kanbanFilterSelect) {
+          const opt5 = document.createElement('option');
+          opt5.value = key;
+          opt5.text = fData.title;
+          kanbanFilterSelect.appendChild(opt5);
+        }
+      }
+
+      step1Select.appendChild(optGroup1);
+      if (step3Select) step3Select.appendChild(optGroup3);
+    }
+
+    function onTitleDropdownChanged(code) {
+      const f = getFeatureData(code);
+      if (!f) return;
+
+      const voiceEl = document.getElementById('req-voice');
+      const probEl = document.getElementById('req-problem');
+      const scopeEl = document.getElementById('req-scope');
+
+      if (voiceEl) voiceEl.value = f.voice;
+      if (probEl) probEl.value = f.problem;
+      if (scopeEl) scopeEl.value = f.scope;
+
+      const step1Sel = document.getElementById('req-title-select');
+      const step3Sel = document.getElementById('step3-filter-module');
+      const ganttSel = document.getElementById('gantt-filter-module');
+      const kanbanSel = document.getElementById('kanban-filter-module');
+
+      if (step1Sel && step1Sel.value !== code) step1Sel.value = code;
+      if (step3Sel && step3Sel.value !== code) step3Sel.value = code;
+      if (code !== 'CUSTOM-ADHOC') {
+        if (ganttSel) ganttSel.value = code;
+        if (kanbanSel) kanbanSel.value = code;
+      }
+
+      const step3Tag = document.getElementById('samr-sync-tag');
+      if (step3Tag) step3Tag.innerText = `● 連動模組: ${code}`;
+
+      const pmDesc = document.getElementById('step3-pm-desc');
+      const pmAct = document.getElementById('step3-pm-actions');
+      const pmDod = document.getElementById('step3-pm-dod');
+      if (pmDesc) pmDesc.innerText = f.raci.pm.desc;
+      if (pmAct) pmAct.innerHTML = f.raci.pm.actions.map(a => `• ${a}`).join('<br>');
+      if (pmDod) pmDod.innerHTML = f.raci.pm.dod.map(d => `✓ ${d}`).join('<br>');
+
+      const rdDesc = document.getElementById('step3-rd-desc');
+      const rdAct = document.getElementById('step3-rd-actions');
+      const rdDod = document.getElementById('step3-rd-dod');
+      if (rdDesc) rdDesc.innerText = f.raci.rd.desc;
+      if (rdAct) rdAct.innerHTML = f.raci.rd.actions.map(a => `• ${a}`).join('<br>');
+      if (rdDod) rdDod.innerHTML = f.raci.rd.dod.map(d => `✓ ${d}`).join('<br>');
+
+      const qaDesc = document.getElementById('step3-qa-desc');
+      const qaAct = document.getElementById('step3-qa-actions');
+      const qaDod = document.getElementById('step3-qa-dod');
+      if (qaDesc) qaDesc.innerText = f.raci.qa.desc;
+      if (qaAct) qaAct.innerHTML = f.raci.qa.actions.map(a => `• ${a}`).join('<br>');
+      if (qaDod) qaDod.innerHTML = f.raci.qa.dod.map(d => `✓ ${d}`).join('<br>');
+
+      const bdDesc = document.getElementById('step3-bd-desc');
+      const bdAct = document.getElementById('step3-bd-actions');
+      const bdDod = document.getElementById('step3-bd-dod');
+      if (bdDesc) bdDesc.innerText = f.raci.bd.desc;
+      if (bdAct) bdAct.innerHTML = f.raci.bd.actions.map(a => `• ${a}`).join('<br>');
+      if (bdDod) bdDod.innerHTML = f.raci.bd.dod.map(d => `✓ ${d}`).join('<br>');
+
+      const checklistContainer = document.getElementById('edge-checklist-container');
+      if (checklistContainer) {
+        checklistContainer.innerHTML = '';
+        if (f.edgeChecklists) {
+          f.edgeChecklists.forEach((item, idx) => {
+            const lbl = document.createElement('label');
+            lbl.className = 'flex items-start space-x-2 p-2 bg-[#05080f] border border-cyber-border rounded hover:border-slate-600 cursor-pointer';
+            lbl.innerHTML = `
+              <input type="checkbox" checked class="mt-0.5 rounded text-cyber-green">
+              <span class="text-slate-300"><strong>[UAT Goal 0${idx+1}]</strong> ${item}</span>
+            `;
+            checklistContainer.appendChild(lbl);
+          });
+        }
+      }
+
+      renderInstantPrdAndInsights(f);
+      renderKanbanBoard();
+      renderGanttSchedule();
+    }
+
+    function onStep3ModuleChanged(code) {
+      const selectEl = document.getElementById('req-title-select');
+      if (selectEl) selectEl.value = code;
+      onTitleDropdownChanged(code);
+    }
+
+    function onGanttModuleChanged(code) {
+      const selectEl = document.getElementById('req-title-select');
+      if (selectEl) selectEl.value = code;
+      onTitleDropdownChanged(code);
+    }
+
+    let teamSubtaskSprints = {};
+    let teamSubtaskProgress = {};
+
+    function updateSubtaskSprint(modId, teamName, newSprint) {
+      teamSubtaskSprints[`${modId}_${teamName}`] = newSprint;
+      renderGanttSchedule();
+    }
+
+    function updateSubtaskProgress(modId, teamName, newProg) {
+      teamSubtaskProgress[`${modId}_${teamName}`] = parseInt(newProg);
+      renderGanttSchedule();
+      calculateOverallProgress();
+    }
+
+    function calculateOverallProgress() {
+      const ganttSel = document.getElementById('gantt-filter-module');
+      const filterModule = ganttSel ? ganttSel.value : 'Feature 01';
+      const teams = ['Product PM', 'UX/FE', 'Engineering', 'QA/Ops', 'Sales/CS'];
+      let total = 0;
+      teams.forEach(t => {
+        total += (teamSubtaskProgress[`${filterModule}_${t}`] ?? 50);
+      });
+      const avg = Math.round(total / teams.length);
+      const progText = document.getElementById('overall-progress-text');
+      if (progText) progText.innerText = `${avg}%`;
+    }
+
+    function renderGanttSchedule() {
+      const container = document.getElementById('gantt-rows-container');
+      if (!container) return;
+      container.innerHTML = '';
+      const ganttSel = document.getElementById('gantt-filter-module');
+      const filterModule = ganttSel ? ganttSel.value : 'Feature 01';
+
+      const teams = [
+        { role: 'Product PM (Specs & Freeze)', name: 'Product PM', defaultSprint: 'Sprint 1 (W1-W2)', defaultProg: 100, color: 'bg-blue-600' },
+        { role: 'UX / Frontend (Prototypes)', name: 'UX/FE', defaultSprint: 'Sprint 1 (W1-W2)', defaultProg: 90, color: 'bg-purple-600' },
+        { role: 'Engineering (Core Architecture)', name: 'Engineering', defaultSprint: 'Sprint 2 (W3-W4)', defaultProg: 60, color: 'bg-emerald-600' },
+        { role: 'QA / DevOps (Load Testing)', name: 'QA/Ops', defaultSprint: 'Sprint 3 (W5-W6)', defaultProg: 30, color: 'bg-teal-600' },
+        { role: 'Sales / CS (Client Alignment)', name: 'Sales/CS', defaultSprint: 'Sprint 4 (W7-W8)', defaultProg: 10, color: 'bg-amber-600' }
+      ];
+
+      teams.forEach(tb => {
+        const sprintKey = `${filterModule}_${tb.name}`;
+        const progKey = `${filterModule}_${tb.name}`;
+        const currentSprint = teamSubtaskSprints[sprintKey] || tb.defaultSprint;
+        const currentProg = teamSubtaskProgress[progKey] ?? tb.defaultProg;
+
+        let startCol = 4;
+        let colSpan = 2;
+        if (currentSprint.includes('Sprint 1')) { startCol = 4; colSpan = 2; }
+        else if (currentSprint.includes('Sprint 2')) { startCol = 6; colSpan = 2; }
+        else if (currentSprint.includes('Sprint 3')) { startCol = 8; colSpan = 2; }
+        else if (currentSprint.includes('Sprint 4')) { startCol = 10; colSpan = 3; }
+
+        let barColor = tb.color;
+        if (currentProg === 100) barColor = 'bg-cyber-green';
+
+        const row = document.createElement('div');
+        row.className = 'grid grid-cols-12 gap-1 items-center py-2 hover:bg-slate-900/40 rounded px-1 transition border-b border-cyber-border/30';
+        row.innerHTML = `
+          <div class="col-span-3 text-slate-300 font-sans text-xs flex flex-col justify-center pr-2 space-y-1">
+            <span class="truncate font-bold text-purple-300">${filterModule} ▪ ${tb.role}</span>
+            <div class="flex items-center gap-1.5 font-mono text-[10px]">
+              <select onchange="updateSubtaskSprint('${filterModule}', '${tb.name}', this.value)" class="p-0.5 rounded text-[10px] text-yellow-400 bg-[#0a121e] border border-cyber-border cursor-pointer">
+                <option value="Sprint 1 (W1-W2)" ${currentSprint.includes('Sprint 1') ? 'selected' : ''}>Sprint 1</option>
+                <option value="Sprint 2 (W3-W4)" ${currentSprint.includes('Sprint 2') ? 'selected' : ''}>Sprint 2</option>
+                <option value="Sprint 3 (W5-W6)" ${currentSprint.includes('Sprint 3') ? 'selected' : ''}>Sprint 3</option>
+                <option value="Sprint 4 (W7-W8)" ${currentSprint.includes('Sprint 4') ? 'selected' : ''}>Sprint 4</option>
+              </select>
+              <input type="range" min="0" max="100" step="5" value="${currentProg}" oninput="updateSubtaskProgress('${filterModule}', '${tb.name}', this.value)" class="w-16 accent-cyber-cyan cursor-pointer" title="Adjust Progress Slider">
+              <span class="text-slate-300 font-bold">${currentProg}%</span>
+            </div>
+          </div>
+          <div class="col-span-${colSpan} col-start-${startCol} relative flex items-center cursor-pointer" onclick="openEditTicketModal('${filterModule}')">
+            <div class="w-full bg-slate-900 h-7 rounded border border-cyber-border overflow-hidden flex items-center relative group hover:border-cyber-cyan transition">
+              <div class="h-full ${barColor} transition-all duration-300 opacity-90" style="width: ${currentProg}%;"></div>
+              <span class="absolute inset-0 flex items-center justify-between px-2 text-[10px] text-white font-mono font-bold z-10 pointer-events-none truncate">
+                <span>${tb.name} (${currentSprint.split(' ')[0]})</span>
+                <span>${currentProg}% 🔗</span>
+              </span>
+            </div>
+          </div>
+        `;
+        container.appendChild(row);
+      });
+      calculateOverallProgress();
+    }
+
+    let tickets = [
+      { id: 'Feature 01', title: 'Feature 01 [Product PM Specs]', status: 'publish', primary: 'Product PM', support: 'UX/FE', sprint: 'Sprint 1 (W1-W2)', progress: 100, risk: false },
+      { id: 'Feature 01', title: 'Feature 01 [UX UI Prototype]', status: 'publish', primary: 'UX/FE', support: 'Engineering', sprint: 'Sprint 1 (W1-W2)', progress: 100, risk: false },
+      { id: 'Feature 01', title: 'Feature 01 [Backend API & Widget]', status: 'dev', primary: 'Engineering', support: 'QA/Ops', sprint: 'Sprint 2 (W3-W4)', progress: 50, risk: false }
+    ];
+
+    function renderKanbanBoard() {
+      const kanbanSel = document.getElementById('kanban-filter-module');
+      const filterModule = kanbanSel ? kanbanSel.value : 'ALL';
+      const cols = { backlog: [], dev: [], test: [], publish: [] };
+      const filtered = tickets.filter(t => filterModule === 'ALL' || t.id === filterModule);
+      filtered.forEach(t => cols[t.status].push(t));
+
+      ['backlog', 'dev', 'test', 'publish'].forEach(status => {
+        const container = document.getElementById(`col-${status}`);
+        if (!container) return;
+        const count = document.getElementById(`count-${status}`);
+        container.innerHTML = '';
+        if (count) count.innerText = cols[status].length;
+
+        cols[status].forEach(t => {
+          const card = document.createElement('div');
+          card.className = `p-2.5 bg-[#0a121e] border ${t.risk ? 'border-rose-500/80 shadow-lg' : 'border-cyber-border'} rounded-lg text-xs space-y-2`;
+          
+          card.innerHTML = `
+            <div class="flex justify-between items-center">
+              <span class="font-mono text-[10px] text-cyber-cyan font-bold">${t.id} ${t.risk ? '⚠️' : ''}</span>
+              <span class="px-1.5 py-0.5 rounded bg-slate-900 text-white font-bold text-[9px]">${t.primary}</span>
+            </div>
+            <p class="text-slate-200 font-sans text-[11px] cursor-pointer" onclick="openEditTicketModal('${t.id}')">${t.title}</p>
+            <div class="flex justify-between items-center pt-1 border-t border-cyber-border/40 font-mono text-[10px]">
+              <span class="text-cyber-green font-bold">${t.progress}%</span>
+              <div class="space-x-1">
+                ${status !== 'backlog' ? `<button onclick="moveTicketCard('${t.id}', 'prev')" class="px-1.5 py-0.5 bg-slate-800 hover:bg-slate-700 rounded text-slate-300 font-bold cursor-pointer" title="Move Left">◀</button>` : ''}
+                ${status !== 'publish' ? `<button onclick="moveTicketCard('${t.id}', 'next')" class="px-1.5 py-0.5 bg-slate-800 hover:bg-slate-700 rounded text-cyber-cyan font-bold cursor-pointer" title="Move Right">▶</button>` : ''}
+              </div>
+            </div>
+          `;
+          container.appendChild(card);
+        });
+      });
+    }
+
+    function moveTicketCard(id, direction) {
+      const flow = ['backlog', 'dev', 'test', 'publish'];
+      const ticket = tickets.find(t => t.id === id);
+      if (!ticket) return;
+
+      let idx = flow.indexOf(ticket.status);
+      if (direction === 'next' && idx < flow.length - 1) {
+        ticket.status = flow[idx + 1];
+        ticket.progress = Math.min(100, ticket.progress + 30);
+      } else if (direction === 'prev' && idx > 0) {
+        ticket.status = flow[idx - 1];
+        ticket.progress = Math.max(10, ticket.progress - 30);
+      }
+
+      if (ticket.status === 'dev') {
+        teamSubtaskSprints[`${ticket.id}_${ticket.primary}`] = 'Sprint 2 (W3-W4)';
+      } else if (ticket.status === 'test') {
+        teamSubtaskSprints[`${ticket.id}_${ticket.primary}`] = 'Sprint 3 (W5-W6)';
+      } else if (ticket.status === 'publish') {
+        teamSubtaskSprints[`${ticket.id}_${ticket.primary}`] = 'Sprint 4 (W7-W8)';
+        ticket.progress = 100;
+      } else if (ticket.status === 'backlog') {
+        teamSubtaskSprints[`${ticket.id}_${ticket.primary}`] = 'Sprint 1 (W1-W2)';
+      }
+
+      teamSubtaskProgress[`${ticket.id}_${ticket.primary}`] = ticket.progress;
+
+      renderKanbanBoard();
+      renderGanttSchedule();
+    }
+
+    function openAddTicketModal() {
+      const heading = document.getElementById('modal-heading');
+      const ticketId = document.getElementById('modal-ticket-id');
+      const ticketTitle = document.getElementById('modal-ticket-title');
+      const modal = document.getElementById('ticket-modal');
+      const ganttSel = document.getElementById('gantt-filter-module');
+
+      if (heading) heading.innerText = 'Add Jira Ticket';
+      if (ticketId) ticketId.value = ganttSel ? ganttSel.value : 'Feature 01';
+      if (ticketTitle) ticketTitle.value = '';
+      if (modal) modal.classList.remove('hidden');
+    }
+
+    function openEditTicketModal(id) {
+      const heading = document.getElementById('modal-heading');
+      const ticketId = document.getElementById('modal-ticket-id');
+      const ticketTitle = document.getElementById('modal-ticket-title');
+      const modal = document.getElementById('ticket-modal');
+
+      if (heading) heading.innerText = `Edit Jira Ticket: ${id}`;
+      if (ticketId) ticketId.value = id;
+      if (ticketTitle) ticketTitle.value = 'Task execution details';
+      if (modal) modal.classList.remove('hidden');
+    }
+
+    function closeTicketModal() {
+      const modal = document.getElementById('ticket-modal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function applyPresetToModal(val) {
+      if (val === '') return;
+      const fData = getFeatureData(val);
+      const ticketId = document.getElementById('modal-ticket-id');
+      const ticketTitle = document.getElementById('modal-ticket-title');
+      if (fData && ticketId && ticketTitle) {
+        ticketId.value = val;
+        ticketTitle.value = `${val}: ${fData.title}`;
+      }
+    }
+
+    function saveTicketFromModal() {
+      const idEl = document.getElementById('modal-ticket-id');
+      const titleEl = document.getElementById('modal-ticket-title');
+      const primaryEl = document.getElementById('modal-ticket-primary');
+      const sprintEl = document.getElementById('modal-ticket-sprint');
+      const statusEl = document.getElementById('modal-ticket-status');
+      const progressEl = document.getElementById('modal-ticket-progress');
+      const riskEl = document.getElementById('modal-ticket-risk');
+
+      const id = idEl ? idEl.value.trim() : 'Feature 01';
+      const title = titleEl ? titleEl.value.trim() : 'New Subtask Ticket';
+      const primary = primaryEl ? primaryEl.value : 'Product PM';
+      const sprint = sprintEl ? sprintEl.value : 'Sprint 1 (W1-W2)';
+      const status = statusEl ? statusEl.value : 'backlog';
+      const progress = progressEl ? parseInt(progressEl.value) : 50;
+      const risk = riskEl ? riskEl.checked : false;
+
+      const existing = tickets.find(t => t.id === id && t.primary === primary);
+      if (existing) {
+        existing.title = title;
+        existing.sprint = sprint;
+        existing.status = status;
+        existing.progress = progress;
+        existing.risk = risk;
+      } else {
+        tickets.push({ id, title, primary, sprint, status, progress, risk });
+      }
+
+      teamSubtaskSprints[`${id}_${primary}`] = sprint;
+      teamSubtaskProgress[`${id}_${primary}`] = progress;
+
+      closeTicketModal();
+      renderKanbanBoard();
+      renderGanttSchedule();
+    }
+
+    function deleteCurrentTicket() {
+      closeTicketModal();
+      renderKanbanBoard();
+    }
+
+    function openGmailKickoffCompose() {
+      const selectEl = document.getElementById('req-title-select');
+      const code = selectEl ? selectEl.value : 'Feature 01';
+      const f = getFeatureData(code);
+      const senderEmail = 'mshappyj@gmail.com';
+      const subject = `[KICKOFF & SCOPE FREEZE] Project Execution Plan for ${code}`;
+      
+      const emailBody = `Hi Cross-Functional Team,
+
+As Product PM convening this kickoff for [${code}], all teams must strictly adhere to our Scope Freeze and RACI matrix.
+
+Sender / PM Convener: ${senderEmail}
+
+【Project Kickoff & Scope Details】
+- Feature: ${f.title}
+- Voice of Customer: ${f.voice}
+- Root Cause & Solution: ${f.problem}
+- Scope Boundary: ${f.scope}
+
+Please review the Command Center and confirm your team's readiness by EOD today.
+
+Best regards,
+Product PM: ${senderEmail}
+Omcean Booking Delivery Command Center`;
+
+      const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(emailBody)}`;
+      window.open(gmailUrl, '_blank');
+    }
+
+    function renderInstantPrdAndInsights(f) {
+      const prdTitleEl = document.getElementById('prd-header-title');
+      if (prdTitleEl) prdTitleEl.innerText = `[PRD] ${f.title}`;
+
+      const prdViewEl = document.getElementById('prd-content-view');
+      if (prdViewEl) {
+        prdViewEl.innerHTML = `
+          <div class="border-b border-cyber-border/50 pb-2 mb-2">
+            <span class="text-cyber-cyan font-bold block mb-1">1. 架構與解決方案 (Architecture & Solution)</span>
+            <p class="text-slate-300">${f.sol}</p>
+          </div>
+          <div class="border-b border-cyber-border/50 pb-2 mb-2">
+            <span class="text-cyber-cyan font-bold block mb-1">2. 核心使用者故事 (User Stories)</span>
+            <div>${f.userStories}</div>
+          </div>
+          <div class="border-b border-cyber-border/50 pb-2 mb-2">
+            <span class="text-cyber-cyan font-bold block mb-1">3. Gherkin 驗收條件 (Acceptance Criteria - BDD)</span>
+            <div class="space-y-1.5 font-mono text-[11px] bg-[#080d17] p-2.5 rounded border border-cyber-border/40 whitespace-pre-line">${f.gherkinAC}</div>
+          </div>
+          <div class="border-b border-cyber-border/50 pb-2 mb-2">
+            <span class="text-cyber-cyan font-bold block mb-1">4. UI/UX Wireframe (介面草圖)</span>
+            <pre class="bg-[#05080f] p-2 rounded text-[10px] text-cyber-gold font-mono overflow-x-auto">${f.wireframe}</pre>
+          </div>
+          <div class="border-b border-cyber-border/50 pb-2 mb-2">
+            <span class="text-cyber-cyan font-bold block mb-1">5. Data Flow / Sequence Diagram (資料流與時序圖)</span>
+            <pre class="bg-[#05080f] p-2 rounded text-[10px] text-cyber-green font-mono overflow-x-auto">${f.seqDiag}</pre>
+          </div>
+          <div class="border-b border-cyber-border/50 pb-2 mb-2">
+            <span class="text-cyber-cyan font-bold block mb-1">6. Metrics / Success KPI (成效指標)</span>
+            <div class="text-slate-200">${f.kpi}</div>
+          </div>
+          <div>
+            <span class="text-cyber-cyan font-bold block mb-1">8. 邊界異常檢核表 (Edge Cases)</span>
+            <div class="text-slate-300 whitespace-pre-line">${f.edgeChecklists.join('\n')}</div>
+          </div>
+        `;
+      }
+
+      const insightsEl = document.getElementById('prd-pm-insights');
+      if (insightsEl) {
+        insightsEl.innerHTML = `
+          <div class="p-2.5 bg-[#05080f] rounded border border-cyber-border space-y-1">
+            <div class="text-cyber-cyan font-bold">7. PM 戰情室決策 (Strategic Decisions)</div>
+            <div class="text-slate-300 text-[11px] leading-relaxed whitespace-pre-line">${f.pmInsights}</div>
+          </div>
+        `;
+      }
+    }
+
+    // ====== 新增：儲存與讀取修改內容的功能 ======
+    function saveAllModifications() {
+      const dataToSave = {
+        okrs: {
+          okr1Val: document.getElementById('okr-1-val').innerHTML,
+          okr1Sub: document.getElementById('okr-1-sub').innerHTML,
+          okr2Val: document.getElementById('okr-2-val').innerHTML,
+          okr2Sub: document.getElementById('okr-2-sub').innerHTML,
+          okr3Val: document.getElementById('okr-3-val').innerHTML,
+          okr3Sub: document.getElementById('okr-3-sub').innerHTML,
+          okr4Val: document.getElementById('okr-4-val').innerHTML,
+          okr4Sub: document.getElementById('okr-4-sub').innerHTML,
+          okr5Val: document.getElementById('okr-5-val').innerHTML,
+          okr5Sub: document.getElementById('okr-5-sub').innerHTML,
+        },
+        step1: {
+          voice: document.getElementById('req-voice').value,
+          problem: document.getElementById('req-problem').value,
+          scope: document.getElementById('req-scope').value
+        },
+        step3Raci: {
+          pmDesc: document.getElementById('step3-pm-desc').innerHTML,
+          pmAct: document.getElementById('step3-pm-actions').innerHTML,
+          pmDod: document.getElementById('step3-pm-dod').innerHTML,
+          rdDesc: document.getElementById('step3-rd-desc').innerHTML,
+          rdAct: document.getElementById('step3-rd-actions').innerHTML,
+          rdDod: document.getElementById('step3-rd-dod').innerHTML,
+          qaDesc: document.getElementById('step3-qa-desc').innerHTML,
+          qaAct: document.getElementById('step3-qa-actions').innerHTML,
+          qaDod: document.getElementById('step3-qa-dod').innerHTML,
+          bdDesc: document.getElementById('step3-bd-desc').innerHTML,
+          bdAct: document.getElementById('step3-bd-actions').innerHTML,
+          bdDod: document.getElementById('step3-bd-dod').innerHTML,
+        },
+        samr: {
+          s: document.getElementById('samr-s').value,
+          a: document.getElementById('samr-a').value,
+          m: document.getElementById('samr-m').value,
+          r: document.getElementById('samr-r').value,
+          owners: document.getElementById('sync-owners').value,
+          summary: document.getElementById('sync-summary').value,
+          actions: document.getElementById('sync-actions').value
+        },
+        sop: {
+          s1Team: document.getElementById('sop-1-team').innerHTML,
+          s1Sprint: document.getElementById('sop-1-sprint').innerHTML,
+          s1Action: document.getElementById('sop-1-action').innerHTML,
+          s1Deadline: document.getElementById('sop-1-deadline').innerHTML,
+          s1Goal: document.getElementById('sop-1-goal').innerHTML,
+          s2Team: document.getElementById('sop-2-team').innerHTML,
+          s2Sprint: document.getElementById('sop-2-sprint').innerHTML,
+          s2Action: document.getElementById('sop-2-action').innerHTML,
+          s2Deadline: document.getElementById('sop-2-deadline').innerHTML,
+          s2Goal: document.getElementById('sop-2-goal').innerHTML,
+          s3Team: document.getElementById('sop-3-team').innerHTML,
+          s3Sprint: document.getElementById('sop-3-sprint').innerHTML,
+          s3Action: document.getElementById('sop-3-action').innerHTML,
+          s3Deadline: document.getElementById('sop-3-deadline').innerHTML,
+          s3Goal: document.getElementById('sop-3-goal').innerHTML,
+        },
+        tickets: tickets,
+        teamSubtaskSprints: teamSubtaskSprints,
+        teamSubtaskProgress: teamSubtaskProgress
+      };
+
+      localStorage.setItem('omcean_pm_saved_data', JSON.stringify(dataToSave));
+      alert('✅ 所有修改內容已成功儲存至瀏覽器！');
+    }
+
+    function loadSavedModifications() {
+      const saved = localStorage.getItem('omcean_pm_saved_data');
+      if (!saved) return;
+      try {
+        const data = JSON.parse(saved);
+        if (data.okrs) {
+          document.getElementById('okr-1-val').innerHTML = data.okrs.okr1Val;
+          document.getElementById('okr-1-sub').innerHTML = data.okrs.okr1Sub;
+          document.getElementById('okr-2-val').innerHTML = data.okrs.okr2Val;
+          document.getElementById('okr-2-sub').innerHTML = data.okrs.okr2Sub;
+          document.getElementById('okr-3-val').innerHTML = data.okrs.okr3Val;
+          document.getElementById('okr-3-sub').innerHTML = data.okrs.okr3Sub;
+          document.getElementById('okr-4-val').innerHTML = data.okrs.okr4Val;
+          document.getElementById('okr-4-sub').innerHTML = data.okrs.okr4Sub;
+          document.getElementById('okr-5-val').innerHTML = data.okrs.okr5Val;
+          document.getElementById('okr-5-sub').innerHTML = data.okrs.okr5Sub;
+        }
+        if (data.step1) {
+          document.getElementById('req-voice').value = data.step1.voice;
+          document.getElementById('req-problem').value = data.step1.problem;
+          document.getElementById('req-scope').value = data.step1.scope;
+        }
+        if (data.step3Raci) {
+          document.getElementById('step3-pm-desc').innerHTML = data.step3Raci.pmDesc;
+          document.getElementById('step3-pm-actions').innerHTML = data.step3Raci.pmAct;
+          document.getElementById('step3-pm-dod').innerHTML = data.step3Raci.pmDod;
+          document.getElementById('step3-rd-desc').innerHTML = data.step3Raci.rdDesc;
+          document.getElementById('step3-rd-actions').innerHTML = data.step3Raci.rdAct;
+          document.getElementById('step3-rd-dod').innerHTML = data.step3Raci.rdDod;
+          document.getElementById('step3-qa-desc').innerHTML = data.step3Raci.qaDesc;
+          document.getElementById('step3-qa-actions').innerHTML = data.step3Raci.qaAct;
+          document.getElementById('step3-qa-dod').innerHTML = data.step3Raci.qaDod;
+          document.getElementById('step3-bd-desc').innerHTML = data.step3Raci.bdDesc;
+          document.getElementById('step3-bd-actions').innerHTML = data.step3Raci.bdAct;
+          document.getElementById('step3-bd-dod').innerHTML = data.step3Raci.bdDod;
+        }
+        if (data.samr) {
+          document.getElementById('samr-s').value = data.samr.s;
+          document.getElementById('samr-a').value = data.samr.a;
+          document.getElementById('samr-m').value = data.samr.m;
+          document.getElementById('samr-r').value = data.samr.r;
+          document.getElementById('sync-owners').value = data.samr.owners;
+          document.getElementById('sync-summary').value = data.samr.summary;
+          document.getElementById('sync-actions').value = data.samr.actions;
+        }
+        if (data.sop) {
+          document.getElementById('sop-1-team').innerHTML = data.sop.s1Team;
+          document.getElementById('sop-1-sprint').innerHTML = data.sop.s1Sprint;
+          document.getElementById('sop-1-action').innerHTML = data.sop.s1Action;
+          document.getElementById('sop-1-deadline').innerHTML = data.sop.s1Deadline;
+          document.getElementById('sop-1-goal').innerHTML = data.sop.s1Goal;
+          document.getElementById('sop-2-team').innerHTML = data.sop.s2Team;
+          document.getElementById('sop-2-sprint').innerHTML = data.sop.s2Sprint;
+          document.getElementById('sop-2-action').innerHTML = data.sop.s2Action;
+          document.getElementById('sop-2-deadline').innerHTML = data.sop.s2Deadline;
+          document.getElementById('sop-2-goal').innerHTML = data.sop.s2Goal;
+          document.getElementById('sop-3-team').innerHTML = data.sop.s3Team;
+          document.getElementById('sop-3-sprint').innerHTML = data.sop.s3Sprint;
+          document.getElementById('sop-3-action').innerHTML = data.sop.s3Action;
+          document.getElementById('sop-3-deadline').innerHTML = data.sop.s3Deadline;
+          document.getElementById('sop-3-goal').innerHTML = data.sop.s3Goal;
+        }
+        if (data.tickets) tickets = data.tickets;
+        if (data.teamSubtaskSprints) teamSubtaskSprints = data.teamSubtaskSprints;
+        if (data.teamSubtaskProgress) teamSubtaskProgress = data.teamSubtaskProgress;
+      } catch (e) {
+        console.error("Load saved data error:", e);
+      }
+    }
+
+    window.onload = function() {
+      try {
+        initDropdowns();
+        loadSavedModifications(); // 網頁載入時自動套用之前儲存的資料
+        const selectEl = document.getElementById('req-title-select');
+        const step3Sel = document.getElementById('step3-filter-module');
+        if (selectEl) {
+          selectEl.value = "Feature 01";
+          onTitleDropdownChanged("Feature 01");
+        }
+        if (step3Sel) {
+          step3Sel.value = "Feature 01";
+        }
+        renderKanbanBoard();
+        renderGanttSchedule();
+      } catch (err) {
+        console.error("Initialization Error:", err);
+      }
+    };
+  </script>
+</body>
+</html>
